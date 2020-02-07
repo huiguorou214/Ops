@@ -1,0 +1,12 @@
+---
+- hosts: all
+  gather_facts: true
+  
+  tasks: 
+  - name: Generate the cmdb html for all group 
+    local_action:
+      module: shell
+      _raw_params: 'ansible-cmdb -t html_fancy_split -f /tmp/ansible-cmdb/'
+      chdir: /var/www/html/
+    run_once: yes
+

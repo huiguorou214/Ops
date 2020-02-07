@@ -1,0 +1,14 @@
+---
+- name: ssh-keyscan clients
+  shell: ssh-keyscan -t rsa -f {{ HOSTLIST }} >> /root/.ssh/known_hosts
+  connection: local
+  run_once: true
+
+- name: deliver authorized_key
+  authorized_key:
+    user: root
+    state: present
+    key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+
+#- name: delete the duplicate lines of the known_hosts file
+  

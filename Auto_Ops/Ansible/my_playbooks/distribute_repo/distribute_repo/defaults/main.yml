@@ -1,0 +1,3 @@
+---
+# defaults file for distribute_repo
+yum_server_ip: 192.168.31.101

@@ -1,0 +1,12 @@
+---
+- name: configure repo file
+  yum_repository:
+    name: rhel-{{ ansible_distribution_version }}-server-rpms
+    description: RHEL {{ ansible_distribution_version }} Server RPMS
+    baseurl: "http://{{ yum_server_ip }}/pub/yum/rhel/rhel{{ ansible_distribution_major_version }}/{{ ansible_architecture }}/rhel-{{ ansible_distribution_version }}-server-rpms/" 
+    enabled: yes
+    gpgcheck: no
+
+- name: update the client's repodata
+  yum: 
+      update_cache: yes
