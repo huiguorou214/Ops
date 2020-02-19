@@ -41,9 +41,9 @@ question：
 11
 
 但是如果通过ansible-server端来操作的话，查看"echo $AAA"还是无效，如下：  
-[root@ansible-server playbooks]# ansible -i inventory all -m command  -a "echo $AAA"
+[root@ansible-server playbooks]# ansible -i inventory all -m command  -a "echo $AAA"  
 192.168.31.72 | CHANGED | rc=0 >>  
-[root@ansible-server playbooks]# ansible -i inventory all -m shell  -a "echo $AAA"
+[root@ansible-server playbooks]# ansible -i inventory all -m shell  -a "echo $AAA"  
 192.168.31.72 | CHANGED | rc=0 >>
 
 answer：
