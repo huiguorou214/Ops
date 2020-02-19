@@ -1,12 +1,8 @@
 # arch 
 
-
-
-## 作用：
+## 介绍
 
 用来查看系统硬件架构（CPU指令集），就是常说的 i386/i486/i586/i686...
-
-
 
 ## 语法
 
@@ -23,9 +19,7 @@ DESCRIPTION
               output version information and exit
 ```
 
-
-
-## 应用
+## example
 
 查看系统硬件架构：
 

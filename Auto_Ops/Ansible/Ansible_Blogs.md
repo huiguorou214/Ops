@@ -8,3 +8,8 @@
 
 
 
+### 【ansible 】关于ansible远程执行的环境变量问题
+
+https://www.jianshu.com/p/b5c4113b28d7
+
+简介：主要是解决了一个无法使用客户端上的环境变量问题，提到了login shell和non-login shell的概念。

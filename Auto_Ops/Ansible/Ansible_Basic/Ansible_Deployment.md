@@ -1,28 +1,68 @@
-# Install Ansible
+# Ansible Deployment
+
+> 本文主要详细写了一些在各种操作系统中各种安装部署与使用Ansible的方式
 
 ## Author
 
-```tex
+```
 Name:Shinefire
-Blog:
-E-mail:czy@clinux.cn
+Blog:https://github.com/shine-fire/Ops_Notes
+E-mail:shine_fire@qq.com
 ```
 
+## 一、大纲
 
+| 操作系统       | 部署方式      | Ansible纳管 |
+| -------------- | ------------- | ----------- |
+| CentOS6/7      | YUM           | N/A         |
+| CentOS6/7      | pip           | N/A         |
+| RHEL5+RHEL6/7  | pip部署双版本 | N/A         |
+| Windows Server | N/A           | 纳管        |
 
-## Preface
+## 二、CentOS使用YUM部署Ansible
+
+### 2.1 说明
+
+使用YUM方式来进行部署ansible是最方便的一种，配置好yum源再使用yum命令安装即可完成。  
+CentOS使用epel源即可，RHEL可以使用extras源和ansible源，在环境允许的情况下也可以直接使用epel源。
+
+### 2.2 使用epel源部署ansible
+
+2.2.1 配置epel源
+
+```bash
+[root@apt-2 ~]# yum -y install epel-release
+[root@apt-2 ~]# yum clean all 
+[root@apt-2 ~]# yum makecache
+```
+
+2.2.2 使用yum命令进行安装
+
+```bash
+[root@apt-2 ~]# yum install ansible -y
+```
+
+## 三、RHEL/CentOS使用pip部署Ansible
+
+### 3.1说明
+
+这个方式需要有pip源能用，不然无法直接进行pip来安装
+
+3.2 配置pip源/下载相关的软件包
+
+3.3 使用pip命令进行安装
+
+## 四、RHEL/CentOS使用pip部署Ansible双版本
+
+### 4.1 说明
+
+使用pip部署ansible双版本的方式应用场景较少，主要目的是为了解决还依然在使用RHEL5机器的管理问题，因为Ansible2.3以后就不再对RHEL5的操作系统进行支持了，如果想让你的Ansible服务器能同时管理RHEL5和RHEL6/7的操作系统，就需要用到这种双版本的方式来进行管理。尽管能达到目的，不过不推荐使用这种方式来进行管理，另外再使用一台服务器来做为Ansible服务器管理RHEL5操作系统也许会更合适一点。
 
 本文档将会介绍介绍安装Ansible相关的一些操作，主要是提及到了在RHEL6与RHEL7中如何实现不同版本的ansible部署，因为少部分用户的生产环境中还存在着RHEL5的服务器，如果想使用Ansible来对RHEL5的服务器进行管理的话则需要Ansible2.3的版本，所以会有需要安装双版本的需求。
 
-部署ansible主要是有两种方式，一种是直接yum安装，一种是使用pip来进行安装。
+### 4.2 Install and Use
 
-
-
-## Install Two Difference Versions Ansible Use Pip
-
-
-
-### RHEL7 Install Ansible Use Two Difference Versions
+#### 4.2.1 How to Install Ansible Use Two Difference Versions
 
 1. 准备yum源
 
@@ -98,75 +138,7 @@ E-mail:czy@clinux.cn
      python version = 2.7.5 (default, Aug 29 2016, 10:12:21) [GCC 4.8.5 20150623 (Red Hat 4.8.5-4)]
    ```
 
-
-
-### RHEL6 Install Ansible Use Two Difference Versions
-
-1. 配置好yum源
-
-   如果网络情况允许则可以配置一个epel源来方便进行pip的安装，网络情况不允许的话则需要提前将相应需要的软件包离线下载好。
-
-2. 安装需要的rpm包
-
-   ```bash
-   # yum --enablerepo=rhel-server-rhscl-6-rpms install python27-python-pip python27-python-devel gcc
-   ```
-
-3. 启动一个python2.7的会话并升级pip
-
-   ```bash
-   # scl enable python27 bash
-   # pip install --upgrade pip
-   ```
-
-   **注意：**如果是自己离线下载的相关的软件包，则可以通过 pip install --find-links 来指定路径安装，例如
-
-   ```bash
-   # pip install --no-index --find-links=./pip-packages --upgrade pip
-   ```
-
-4. 安装Python虚拟环境
-
-   ```bash
-   # pip install virtualenv virtualenvwrapper
-   # source virtualenvwrapper.sh 
-   ```
-
-   如果想修改virtualenvwrapper.sh执行的变量，可以对修改 /root/.bashrc 文件并source生效
-
-   ```bash
-   # tail -n 2 /root/.bashrc
-   export WORKON_HOME=$HOME/.virtualenvs
-   source /usr/bin/virtualenvwrapper.sh
-   # source .bashrc
-   ```
-
-5. 创建不同版本的Ansible虚拟环境
-
-   ```bash
-   # mkvirtualenv --no-download ansible2.3
-   (ansible2.3) # pip install ansible==2.3 
-   (ansible2.3) # ansible --version
-   ansible 2.3.0.0
-     config file = 
-     configured module search path = Default w/o overrides
-     python version = 2.7.13 (default, Feb  8 2017, 06:30:30) [GCC 4.4.7 20120313 (Red Hat 4.4.7-16)]
-   # deactivate 
-   
-   # mkvirtualenv --no-download ansible2.6
-   (ansible2.6) # pip install ansible==2.6
-   (ansible2.6) # ansible --version
-   ansible 2.6.0
-     config file = None
-     configured module search path = [u'/root/.ansible/plugins/modules', u'/usr/share/ansible/plugins/modules']
-     ansible python module location = /root/.virtualenvs/ansible2.6/lib/python2.7/site-packages/ansible
-     executable location = /root/.virtualenvs/ansible2.6/bin/ansible
-     python version = 2.7.13 (default, Feb  8 2017, 06:30:30) [GCC 4.4.7 20120313 (Red Hat 4.4.7-16)]
-   ```
-
-
-
-### Ansible Switch Usage
+#### 4.2.2 How to Use
 
 1. scl切换到python27环境
 
@@ -237,9 +209,7 @@ E-mail:czy@clinux.cn
    # 
    ```
 
-
-
-### Problems
+### 4.2.3 Problems
 
 **problem1**
 
@@ -270,3 +240,6 @@ source /usr/local/bin/virtualenvwrapper.sh
 # Load .bashrc if it exists
 #test -f ~/.bashrc && source ~/.bashrc
 ```
+
+## 五、参考文献
+
