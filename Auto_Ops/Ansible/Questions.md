@@ -48,6 +48,12 @@ question：
 
 answer：
 
+在playbook里面可以直接用，但是如果是在ad-hoc里面的话，需要加上转义符才能生效，不然直接解析server端的变量去了...
+
+[root@ansible-server playbooks]# ansible -i inventory all -a "echo \$AAA"  
+192.168.31.72 | CHANGED | rc=0 >>  
+10
+
 
 
 question：
