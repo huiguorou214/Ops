@@ -1,6 +1,6 @@
 # Questions
 
-question：
+**question**：
 
 各种操作系统版本，ansible版本情况下ansible连接客户端的方式及原理等，
 
@@ -8,7 +8,7 @@ answer：
 
 
 
-question：
+**question**：
 
 在inventory文件中，组下面的主机中间空行会有影响吗？例如：
 
@@ -23,7 +23,7 @@ answer：没影响，还是会把10.0.0.2纳入到这个group里
 
 
 
-question：
+**question**：
 
 在inventory中，一个主机同时属于两个组的时候，如果一个操作对两个组都生效，并且这个操作会冲突，那么以谁为准？
 
@@ -31,7 +31,7 @@ answer：
 
 
 
-question：
+**question**：
 
 通过ansible操作客户端机器的时候，如何才能直接使用客户端机器设置的环境变量？
 
@@ -56,18 +56,31 @@ answer：
 
 
 
-question：
+：
 
 answer：
 
 
 
-question：
+**question**：
+
+如果remote_user为非root用户的时候，通过sudo来使用root的环境变量好像并不能达到和root一样的效果，这种情况该如何处理比较合适呢？
+
+ansible-client机器中，给一个非root的普通用户apt加了sudoers配置项："apt     ALL=(ALL)       ALL"
+
+直接在ansible-client机器中使用apt用户进行一个root中设置好的变量输出，能够输出成功
+
+```
+[root@ansible-client1 sudoers.d]# sudo echo $AAA
+11
+```
+
+但是如果在ansible-server中的playbook中，写了相关的变量输出的话是不行的，
 
 answer：
 
 
 
-question：
+**question**：
 
 answer：

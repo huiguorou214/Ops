@@ -1,8 +1,6 @@
 # Title
 
-> 章节说明
-
-
+> 本章主要介绍如何对Samba进行一个快速的简单上手使用，适用于个人或者公司内部非常简易的传输文件使用。
 
 ## Author
 
@@ -12,13 +10,11 @@ Blog:https://github.com/shine-fire/Ops_Notes
 E-mail:shine_fire@qq.com
 ```
 
-
-
-## 原理介绍
+## Introduction
 
 
 
 
 
-## 参考文献
+## References
 
