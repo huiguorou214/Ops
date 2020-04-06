@@ -53,7 +53,7 @@ ansible_python_interpreter
 
 ```
 [targets]
-localhost              ansible_connection=local
+localhost     ansible_connection=local
 ```
 
 ## 动态Inventory
