@@ -68,7 +68,7 @@ CentOS使用epel源即可，RHEL可以使用extras源和ansible源，在环境�
 
    系统的repo，epel repo等。
 
-   如果网络情况允许则可以配置一个epel源来方便进行pip的安装，网络情况不允许的话则需要提前将相应需要的软件包离线下载好。
+   如果网络情况允许则可以配置一个epel源来方便进行pip的安装，网络情况不允许的话则需要提前将相应需要的软件包离线下载好，再进行本地安装，本地安装时需要安装`python-devel`包。
 
    从互联网同步pip源以及离线安装pip的方法：
 
@@ -78,7 +78,7 @@ CentOS使用epel源即可，RHEL可以使用extras源和ansible源，在环境�
    # pip download virtualenv virtualenvwrapper -d ./pip-packages
    # pip download ansible==2.3 -d ./pip-packages
    # pip download ansible==2.6 -d ./pip-packages
-   # pip install --no-index --find-links=./pip-packages ansible==2.3
+   # pip install --no-index --find-links=./pip-packages ansible==2.3  ##离线安装
    ```
 
 2. 安装相关的rpm包
@@ -243,3 +243,4 @@ source /usr/local/bin/virtualenvwrapper.sh
 
 ## 五、参考文献
 
+[Python pip离线安装package方法总结（以TensorFlow为例）](https://imshuai.com/python-pip-install-package-offline-tensorflow)
