@@ -21,7 +21,7 @@
    [root@nuc ~]# yum -y install nfs-utils 
    ```
 
-3. 配置/etc/exports
+3. Modify /etc/exports
 
    ```bash
    [root@nuc ~]# vim /etc/exports
@@ -30,7 +30,7 @@
 
    配置文件说明：左边写的是共享路径，即把本机的`/nfs/ISO/`目录共享出去；右边的是可使用的机器与权限，支持IP和域名写法，()里面的选项可以查看`man exports`
 
-4. 启动NFS服务
+4. Start NFS 
 
    ```bash
    [root@nuc ~]# systemctl start nfs 

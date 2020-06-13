@@ -1,0 +1,155 @@
+> # 一键式安装盘制作
+>
+
+## 文档简介
+
+本文档为CentOS7.8一键式安装盘制作文档
+
+## 环境准备
+
+- CentOS-7-x86_64-NetInstall-2003.iso
+- YUM仓库服务器，用于制作安装盘以及为新机器启动时提供服务
+
+## 制作步骤
+
+1. 安装 iso包制作工具与校验工具
+
+   ```bash
+   # yum install -y genisoimage isomd5sum
+   ```
+
+2. 执行以下命令，挂载光盘镜像，进入光盘镜像所在的目录，例如挂载目录为/media
+
+   ```bash
+   # mount -o loop -t iso9660 CentOS-7-x86_64-NetInstall-2003.iso /media
+   # cd /media
+   ```
+
+3. 拷贝光盘所有文件到某一个目录下，例如目录为/opt/iso/centos-7.8
+
+   ```bash
+   # mkdir -p /opt/iso/centos-7.8
+   # cp -avf /media/* /opt/iso/centos-7.8
+   ```
+   
+4. Kickstart root密码生成命令
+
+   ```bash
+   # python -c 'import crypt,getpass;pw=getpass.getpass();print(crypt.crypt(pw) if (pw==getpass.getpass("Confirm: ")) else exit())'
+   Password: 
+   Confirm: 
+   $6$RialLjcPe5ZHF1n3$e3gy2Ib.sO5rHJ5KdW29PAUc4ShlJxJa7XaH9pcvq4BmG9.MmXdDBySkyNKmg4imL3svI4QtA7ZBx6LEOGE4Z.
+   ```
+
+5. 配置好ks.cfg配置文件
+
+   ```
+#platform=x86, AMD64, or Intel EM64T
+   #version=DEVEL
+   # Install OS instead of upgrade
+   install
+   # Keyboard layouts
+   keyboard 'us'
+   # Root password
+   rootpw --iscrypted $1$8nBZoH7C$9D.UAzhfllG3FeuexdFII.
+   # System language
+   lang en_US
+   # System authorization information
+   auth  --useshadow  --passalgo=sha512
+   # Use text mode install
+   text
+   # SELinux configuration
+   selinux --disabled
+   # Do not configure the X Window System
+   skipx
+   
+   
+   # Firewall configuration
+   firewall --disabled
+   # Reboot after installation
+   reboot
+   # System timezone
+   timezone Asia/Shanghai --isUtc
+   # Use network installation
+   url --url="http://10.233.48.86/repos/centos/7/base/"
+   # System bootloader configuration
+   bootloader --append="crashkernel=auto" --location=mbr --boot-drive=sda
+   # Partition clearing information
+   clearpart --all --initlabel
+   # Disk partitioning information
+   part /boot --fstype="xfs" --size=1024
+   part pv.1078 --fstype="lvmpv" --ondisk=sda --size=203775
+   volgroup rootvg --pesize=4096 pv.1078
+   logvol /opt  --fstype="xfs" --size=20480 --name=opt --vgname=rootvg
+   logvol /var  --fstype="xfs" --size=30720 --name=var --vgname=rootvg
+   logvol /tmp  --fstype="xfs" --size=20480 --name=tmp --vgname=rootvg
+   logvol /  --fstype="xfs" --size=51200 --name=root --vgname=rootvg
+   logvol /usr  --fstype="xfs" --size=20480 --name=usr --vgname=rootvg
+   logvol swap  --fstype="swap" --size=16384 --name=swap --vgname=rootvg
+   logvol /home  --fstype="xfs" --size=44028 --name=home --vgname=rootvg
+   
+   part pv.1079 --fstype="lvmpv" --ondisk=sdb --size=300000
+   volgroup vg01 --pesize=4096 pv.1079
+   logvol /u --fstype="xfs" --size=280000 --name=lvol1 --vgname=vg01
+   
+   %packages
+   @^infrastructure-server-environment
+   @base
+   @compat-libraries
+   @core
+   @hardware-monitoring
+   @large-systems
+   @performance
+   kexec-tools
+   %end
+   ```
+   
+6. 将ks.cfg文件拷贝到存放于YUM仓库服务器中供新建主机进行http访问获取
+
+   ```bash
+   # cp ks.cfg  /u/repos/centos/7/base/ks.cfg
+   ```
+
+7. 修改/opt/iso/centos-7.8/isolinux/目录下的isolinux.cfg配置文件，指定ks.cfg路径
+
+   ```
+   # cd /opt/iso/centos-7.8/isolinux/
+   # vim isolinux.cfg
+   label linux
+     menu label ^Auto Install CentOS 7.8  ## 自定自动安装系统标签
+     menu default
+     kernel vmlinuz 
+     append ks=http://10.233.48.86/repos/centos/7/base/ks.cfg initrd=initrd.img quiet  ## 定义ks.cfg文件路径
+   ```
+
+8. 编写制作安装光盘脚本，脚本内容如下
+
+   ```bash
+   #!/bin/bash
+   MKISO=`which genisoimage 2> /dev/null` ||MKISO=`which mkisofs 2> /dev/null` || {
+     echo "Sorry, you don't have genisoimage or mkisofs installed."
+       exit 1
+         }
+         $MKISO -input-charset utf-8 -v -cache-inodes -joliet-long -R -J -T -V CentOS-7.8 -c isolinux/boot.cat -b isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -b images/efiboot.img -no-emul-boot -o /opt/iso/CentOS-7.8-AutoInstall.iso /opt/iso/centos-7.8/
+         implantisomd5 /opt/iso/CentOS-7.8-AutoInstall.iso
+         checkisomd5 /opt/iso/CentOS-7.8-AutoInstall.iso
+   ```
+
+9. 执行光盘制作脚本
+
+   ```bash
+   [root@nuc opt]# sh mkiso.sh
+   ```
+
+10. 查看制作完成的光盘
+
+    ```bash
+    # ls /opt/iso/CentOS-7-x86_64-DVD-2003_auto.iso
+    ```
+
+11. 拷贝制作完成的光盘到指定路径，供其他机器装机使用
+
+12. 
+
+13. 
+
