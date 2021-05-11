@@ -38,7 +38,6 @@
 
    *注：在RHEL6中需要先启动rpcbind服务，不过在RHEL7中，可以直接启动NFS，但是rpcbind应该是会自行启动*
 
-5. 
 
 
 

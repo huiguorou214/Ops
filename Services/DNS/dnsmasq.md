@@ -1,4 +1,4 @@
-# dnsmasq
+# dnsmasq 部署
 
 > 本章节介绍了dnsmasq的简单使用，如何快速的部署一个内网DNS服务器。
 
@@ -7,14 +7,32 @@
 ```
 Name:Shinefire
 Blog:https://github.com/shine-fire/Ops_Notes
-E-mail:shine_fire@qq.com
+E-mail:shine_fire@outlook.com
 ```
+
+
+
+## 产品介绍
+
+Dnsmasq是一个开源的轻量级DNS转发和DHCP、TFTP服务器，使用C语言编写。Dnsmasq针对家庭局域网等小型局域网设计，资源占用低，易于配置。支持的平台包括Linux、BSD、Smoothwall、IP-Cop、floppyfw、Firebox、LEAF、Freesco, fli4l、CoyoteLinux及Android等，并且在dd-wrt、openwrt路由器系统中也有使用。
+
+Dnsmasq提供DNS缓存和DHCP服务功能。作为域名解析服务器（DNS），Dnsmasq可以通过缓存DNS请求来提高对访问过的网址的连接速度。作为DHCP服务器，Dnsmasq可以用于为局域网电脑分配内网ip地址和提供路由。
+
+
 
 ## 原理介绍
 
+- 本机APP访问主机的/etc/resolv.conf获取DNS Server，该文件指向的DNSServer为Dnsmasq。
+
+- 本地局域网中的主机可以直接访问Dnsmasq，即在这些主机中/etc/resolv.conf指向了Dnsmasq。
+
+- Dnsmasq需要通过上游DNS来进行域名解析，上游DNS可以配置在/etc/resolv.dnsmasq.conf中，该文件需要在Dnsmasq的配置文件/etc/dnsmasq.conf中指定。
+
+
+
 ## 部署步骤
 
-1. 安装软件
+1. 安装软件（配置基础镜像源即可安装）
 
    ```bash
    # yum -y install dnsmasq
@@ -24,9 +42,6 @@ E-mail:shine_fire@qq.com
 
    ```bash
    # cat /etc/dnsmasq.d/shinefire.cc 
-   interface=ens33
-   bind-dynamic
-   resolv-file=/etc/resolv.dnsmasq
    
    address=/iscsi.shinefire.com/192.168.31.228
    address=/iscsi.shinefire.com/192.168.31.229
@@ -60,8 +75,8 @@ E-mail:shine_fire@qq.com
 5. 启动服务
 
    ```bash
-   [root@nuc ~]# systemctl restart dnsmasq.service 
-   [root@nuc ~]# systemctl status dnsmasq.service 
+   [root@nuc ~]# systemctl restart dnsmasq.service
+   [root@nuc ~]# systemctl status dnsmasq.service
    ```
 
 6. 

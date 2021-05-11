@@ -7,7 +7,7 @@
 ```tex
 Name:Shinefire
 Blog:https://github.com/shine-fire/Ops_Notes
-E-mail:shine_fire@qq.com
+E-mail:shine_fire@outlook.com
 ```
 
 

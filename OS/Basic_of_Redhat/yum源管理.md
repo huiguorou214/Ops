@@ -1,4 +1,4 @@
-#  Yum源  
+#  Yum源
 
 
  > 本章节主要是介绍了yum源相关的各方面使用，例如如何使用yum来管理软件包，如何创建yum源，自建yum仓库等
@@ -149,14 +149,9 @@ yum-utils 的更多功能介绍参考： [yum-utils](https://blog.csdn.net/xiaox
 
   ```bash
   [root@apt-1 yum.repos.d]# tar zcvf repo-bk.tar.gz CentOS-*
-  [root@apt-1 yum.repos.d]# vim test-base.repo
-  [test-base]
-  name=CentOS-$releasever - Test - Base
-  baseurl=file:///test/repo/base/
-  enabled=1
-  gpgcheck=0
+  
   ```
-
+  
 - **清除cache，创建cache**
 
   ```bash
@@ -336,3 +331,5 @@ yum-utils 的更多功能介绍参考： [yum-utils](https://blog.csdn.net/xiaox
 ## 参考文档
 
 - [CentOS / RHEL See Detailed History Of yum history Commands](https://www.cyberciti.biz/faq/yum-history-command/)
+- How to create a local mirror of the latest update for Red Hat Enterprise Linux 5, 6, 7, 8 without using Satellite server? https://access.redhat.com/solutions/23016
+

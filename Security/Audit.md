@@ -1,5 +1,7 @@
 # Audit
 
+
+
 ## Audit审计介绍
 
 Linux auditd 工具可以将审计记录写入日志文件。包括记录系统调用和文件访问。管理员可以检查这些日志，确定是否存在安全漏洞。
@@ -17,20 +19,12 @@ auditctl -w path_to_file -p permissions -k key_name
 添加规则到 /etc/audit/audit.rules(*RHEL7为/etc/audit/rules.d/audit.rules*) 文件中使用永久性添加规则
 
 ```bash
-vim /etc/audit/rules.d/audit.rules
-## First rule - delete all
--D
-## Increase the buffers to survive stress events.
-## Make this bigger for busy systems
--b 8192
-## Set failure mode to syslog
--f 1
-
--a exit,always -F arch=b64 -S execve -k exec
--a exit,always -F arch=b32 -S execve -k exec
+ 
 ```
 
-## Audit审计的启用
+
+
+## Audit审计快速启用
 
 RHEL5/6/7的配置基本都是一样的，没什么区别，所以只要学会这个配置的流程，就能比较通用的来使用audit审计工具。
 
@@ -102,6 +96,188 @@ type=SYSCALL msg=audit(1571567213.597:3807): arch=c000003e syscall=2 success=yes
 - comm : 用户访问文件的命令
 - exe : 上面命令的可执行文件路径
 
+
+
+## audit.rules 内容详解
+
+示例：
+
+```bash
+~]# vim audit.rules
+# First rule - delete all
+-D
+
+# Increase the buffers to survive stress events.
+# Make this bigger for busy systems
+-b 320
+
+# Feel free to add below this line. See auditctl man page
+-a exit,always -F arch=b64 -S execve -k exec
+-a exit,always -F arch=b32 -S execve -k exec
+
+
+-w /usr/sbin/fdisk -p x -k disk_partition
+-w /etc/crontab -p wa -k crontab
+-w /etc/hosts -p wa -k hosts
+```
+
+
+
+
+
+## auditd.conf配置文件详解
+
+配置文件示例：
+
+```
+#
+# This file controls the configuration of the audit daemon
+#
+
+log_file = /var/log/audit/audit.log
+log_format = RAW
+log_group = root
+priority_boost = 4
+flush = INCREMENTAL_ASYNC
+freq = 50
+num_logs = 5
+disp_qos = lossy
+dispatcher = /sbin/audispd
+name_format = NONE
+##name = mydomain
+max_log_file = 40
+max_log_file_action = ROTATE
+space_left = 75
+space_left_action = SYSLOG
+action_mail_acct = root
+admin_space_left = 50
+admin_space_left_action = SUSPEND
+disk_full_action = SUSPEND
+disk_error_action = SUSPEND
+use_libwrap = yes
+##tcp_listen_port =
+tcp_listen_queue = 5
+tcp_max_per_addr = 1
+##tcp_client_ports = 1024-65535
+tcp_client_max_idle = 0
+enable_krb5 = no
+krb5_principal = auditd
+##krb5_key_file = /etc/audit/audit.key
+```
+
+配置参数详解：
+
+log_file：日志保存路径
+
+log_format：日志保存的格式，raw/enriched.
+
+- raw：kernel发出来什么样的就怎么样存储
+- enriched：会对原始数据做一些处理，例如解析uid,gid等
+
+log_group：指定audit log的group
+
+priority_boost：audit daemon中使用用来指定优先级的
+
+flush：
+
+- none：很普通的将记录flush到磁盘保存起来即可，none模式flush相对会比较慢一些，可以避免频繁把日志flush到磁盘中，影响磁盘性能；
+- incremental：由`freq`参数来指定具体的flush频率；
+- incremental_async：和`incremental`相比基本一样，不过此模式在flush的时候会使用`asynchronously`技术来提高性能；
+- data：使磁盘文件的data部分随时保持同步（to keep the data portion of the disk file sync'd at all times）
+- sync：每次写入磁盘时对data和meta-data都是完全的同步；
+
+freq：用来指定记录达到多少次后才flush到文件中，只有在设置`flush`为`incremental `或者`incremental_async`的时候才有用；
+
+num_logs：日志文件的个数，范围为`2-99`，如果为1或者0则表示不轮转保存日志文件。
+
+disp_qos：
+
+dispatcher：
+
+name_format：设置审计记录行首插入的内容
+
+- none：什么也没有，默认就是这样的
+- hostname：显示主机名
+- fqd：显示fqdn
+- numeric：显示IP地址
+- user：限制管理员自定义的`name`参数的值，所以需要配合`name`参数一起用；
+
+max_log_file：指定audit日志文件的最大保存个数；
+
+max_log_file_action：用来定义当log file达到指定的最大size时需要执行的操作
+
+- ignore：什么都不管，这种情况下，当log file达到最大size时，依旧会不断增大
+- syslog：会给syslog发出告警，例如：`auditd[58776]: Audit daemon log file is larger than max size`
+- suspend：停止继续写入
+- rotate：按`num_logs`指定的个数来不断轮转日志文件
+- keep_logs：类似`rotate`参数来轮转保存日志，但是不会按照手动指定的个数来，而是会一直积累下去
+
+space_left：
+
+space_left_action：
+
+action_mail_acct：
+
+admin_space_left：
+
+admin_space_left_action：
+
+disk_full_action：
+
+disk_error_action：
+
+use_libwrap：
+
+##tcp_listen_port = 
+
+tcp_listen_queue：
+
+tcp_max_per_addr：
+
+##tcp_client_ports = 1024-65535
+
+tcp_client_max_idle：
+
+enable_krb5：
+
+krb5_principal：
+
+##krb5_key_file = /etc/audit/audit.key
+
+
+
+## auditctl command usage
+
+auditctl -s    查询状态
+
+```bash
+~]# auditctl -s
+enabled 1
+failure 1
+pid 7896
+rate_limit 0
+backlog_limit 320
+lost 0
+backlog 0
+```
+
+auditctl -l    查看规则
+
+```bash
+~]# auditctl -l
+-a always,exit -F arch=b64 -S execve -F key=exec
+-a always,exit -F arch=b32 -S execve -F key=exec
+-w /usr/sbin/fdisk -p x -k disk_partition
+-w /etc/crontab -p wa -k crontab
+-w /etc/hosts -p wa -k hosts
+```
+
+auditctl -D    删除所有规则
+
+疑问：删除规则是怎么样的用法呢？只删除命令行添加的临时规则吗？还是说配置文件中添加的规则也会删除，然后需要重启服务才能重新加载配置文件中的规则？
+
+
+
 ## 监控其他用户行为
 
 开启audit审计功能，可以监控指定用户或目录，缺省会监控root的所有登录和操作。
@@ -120,6 +296,8 @@ type=SYSCALL msg=audit(1571567213.597:3807): arch=c000003e syscall=2 success=yes
 
 
 
+
+
 ## aureport工具
 
 
@@ -127,6 +305,125 @@ type=SYSCALL msg=audit(1571567213.597:3807): arch=c000003e syscall=2 success=yes
 ## 参考：
 
 [Linux 用户空间审计工具 audit](https://www.ibm.com/developerworks/cn/linux/l-lo-use-space-audit-tool/index.html)
+
+
+
+
+
+## Audit Troubleshoot 排故案例
+
+### auditd进程造成CPU使用率高 （待完善）
+
+refer：https://access.redhat.com/solutions/879373
+
+#### Issue
+
+- CPU consumption by auditd is increasing
+- System is in hung state because of this high CPU consumption
+
+#### Resolution
+
+- **Check if /var/log/ partition has available space for logs. Otherwise, it can cause auditd fails to write back the logs**
+- Check what logs are in /var/log/audit/audit.log which usually causes by massive number of logs by custom rules
+- Check /etc/audit/audit.rules for any additional rules that could cause the issue
+
+
+
+### 未设置轮询日志触发了auditd的BUG导致CPU使用率过高
+
+refer：https://access.redhat.com/solutions/3430721
+
+#### Issue
+
+The `auditd` daemon uses high amount (100%) of CPU time after each log rotation, even though the internal log rotation of `auditd` was disabled by setting `num_logs = 0` and `max_log_file_action = IGNORE` in `/etc/audit/auditd.conf`.
+
+#### Resolution
+
+配置rotation --> reload配置文件
+
+#### Root Cause
+
+When `num_logs` has a lower value than `2` and `max_log_file_action` is set to other action than `ROTATE`, certain condition in the code of `auditd` is not met when internal log rotation mechanism is triggered, and an index variable in a for-loop underruns unexpectedly. This results in the tight for-loop running long time until its terminating condition is met. Hence `auditd` becomes busy and uses a high amount of CPU resources.
+
+The internal log rotation mechanism can be triggered for example by a log file reaching a size limit, or by receiving a `USR1` signal externally.
+
+#### Diagnostic Steps
+
+refer：link
+
+
+
+### 内存泄露
+
+refer：https://access.redhat.com/solutions/3005691
+
+#### Environment
+
+- RHEL6
+
+#### Issue
+
+- Massive memory leak of cred data structure and connected data structures.
+- Memory usage increases periodically whereas there are no processes consuming the memory. Ultimately system becomes very slow.
+
+#### Resolution
+
+- Please update your kernel to kernel-2.6.32-696.3.1 or higher
+
+#### Root Cause
+
+etc.
+
+
+
+#### 修改刷新率来解决CPU使用率和Load高的问题
+
+refer：https://linux-audit.redhat.narkive.com/17zoDRMH/auditd-cause-high-cpu-and-high-load
+
+#### Issue
+
+I am working as a developer for Garena LTD. Last week, I met a problem with Audit on our product servers. The Auditd process had caused of some pick time on our server. In that times, system CPU cost a lot, around 100%. And the Load average is over 30. We have tried to find the root cause and have failed.
+Could you help us for that case?
+
+#### Resolution
+
+You might want to check the flush setting for /etc/audit/auditd.conf. I would recommend using incremental and set the freq to something like 200 or 500. Using sync or data will kill performance, but the event is written to disk before processing the next event.
+
+
+
+### audit: backlog limit exceeded
+
+refer：https://access.redhat.com/solutions/473223
+
+#### Issue
+
+- This message is being displayed continuously on console. I will have to power cycle to reboot.
+
+  ```
+  audit: backlog limit exceeded
+  ```
+
+- Following messages seen in system log:
+
+  ```
+  audit: audit_backlog=321 > audit_backlog_limit=320
+  audit: audit_lost=44393 audit_rate_limit=0 audit_backlog_limit=320
+  audit: backlog limit exceeded
+  audit: audit_backlog=321 > audit_backlog_limit=320
+  audit: audit_lost=44394 audit_rate_limit=0 audit_backlog_limit=320
+  audit: backlog limit exceeded
+  audit: audit_backlog=321 > audit_backlog_limit=320
+  audit: audit_lost=44395 audit_rate_limit=0 audit_backlog_limit=320
+  audit: backlog limit exceeded
+  audit: audit_backlog=321 > audit_backlog_limit=320
+  ```
+
+#### Resolution
+
+1. Unfreeze the frozen filesystem to allow the audit daemon to write out the backlog of audit data.
+2. refer the link：https://access.redhat.com/solutions/473223
+
+
 
 
 

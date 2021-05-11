@@ -1,7 +1,5 @@
 # Ansible Application Scenarios
 
-
-
 1.Windows补丁升级脚本开发（推荐）-定期推送指定的更新包给windows服务器安装。
 
 2.防火墙配置检查-检查Linux与Windows的防火墙配置情况，防止异常开启导致服务异常。
