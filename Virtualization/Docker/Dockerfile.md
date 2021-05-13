@@ -1,7 +1,5 @@
 # Docker Image 构建并推送到容器仓库操作指引
 
-
-
 ## 将外网的image导入到容器仓库的步骤
 
 下面以构建一个基于rhel7.9的jdk1.8版本docker image为例，介绍一下操作步骤：
