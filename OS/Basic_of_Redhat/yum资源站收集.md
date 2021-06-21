@@ -58,5 +58,6 @@ rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 
 
 
-## Nginx
+## Puppet
 
+index： https://yum.puppet.com/

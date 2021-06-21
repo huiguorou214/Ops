@@ -14,3 +14,12 @@
 该脚本可以将 --registry-mirror 加入到你的 Docker 配置文件 /etc/docker/daemon.json 中。适用于 Ubuntu14.04、Debian、CentOS6 、CentOS7、Fedora、Arch Linux、openSUSE Leap 42.1，其他版本可能有细微不同。更多详情请访问文档。
 
 不过RHEL用这个脚本执行的话，是不能执行的，里面的版本判断，并不支持redhat的操作系统。
+
+
+
+如果使用RHEL可以手动直接将命令中末尾的 `f1361db2.m.daocloud.io` 添加到 `/etc/docker/daemon.json` 中，如下：
+
+```bash
+]# cat /etc/docker/daemon.json
+{"registry-mirrors": ["http://f1361db2.m.daocloud.io"]}
+```

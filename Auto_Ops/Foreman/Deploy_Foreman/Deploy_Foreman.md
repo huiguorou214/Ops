@@ -1,4 +1,4 @@
-# Title
+# Foreman Deployment
 
 > 本章主要介绍如何快速的部署一个Foreman上手使用，适用于个人或者公司平时的补丁管理。
 
@@ -20,13 +20,62 @@ Foreman-katello  是一个All in one的开源项目，整合了很多其他开�
 
 ## 二、Enviroment Planning
 
+### 版本说明
+
+| Items           | Var   |      |
+| --------------- | ----- | ---- |
+| OS Version      | RHEL7 |      |
+| Foreman Version | 2.3   |      |
+|                 |       |      |
+
+### 浏览器版本推荐：
+
+- Google Chrome 54 or higher
+- Microsoft Edge
+- Microsoft Internet Explorer 10 or higher
+- Mozilla Firefox 49 or higher
+
+> 其他版本的浏览器未测试，不保证都能正常运行
+
+### 防火墙
+
+Protect your Foreman environment by blocking all unnecessary and unused ports.
+
+| Port        | Protocol  | Required For                                                 |
+| :---------- | :-------- | :----------------------------------------------------------- |
+| 53          | TCP & UDP | DNS Server                                                   |
+| 67, 68      | UDP       | DHCP Server                                                  |
+| 69          | UDP       | TFTP Server                                                  |
+| 80, 443     | TCP       | ***** HTTP & HTTPS access to Foreman web UI / provisioning templates - using Apache + Passenger |
+| 3000        | TCP       | HTTP access to Foreman web UI / provisioning templates - using standalone WEBrick service |
+| 5910 - 5930 | TCP       | Server VNC Consoles                                          |
+| 5432        | TCP       | Separate PostgreSQL database                                 |
+| 8140        | TCP       | ***** Puppet server                                          |
+| 8443        | TCP       | Smart Proxy, open only to Foreman                            |
+
+> Ports indicated with ***** are running by default on a Foreman all-in-one installation and should be open.
+
+### YUM源
+
+对于RHEL7，安装Foreman平台之前需要准备好以下YUM源：
+
+- rhel-7-server-optional-rpms
+- rhel-server-rhscl-7-rpms
+- EPEL (Extra Packages for Enterprise Linux) 
+- Foreman repositories（可以在官方选择需要的版本，安装相应rpm后会自动配置一个源 https://yum.theforeman.org/releases/）
+- puppet repository（在官网安装一下这个软件包会自动配置yum源：https://yum.puppet.com/puppet6-release-el-7.noarch.rpm）
 
 
-## 三、Deployment
+
+## 三、使用Foreman Installer部署
 
 ### 3.1 系统环境准备
 
-#### 安装repos
+
+
+#### 配置YUM源
+
+##### 安装在线repos（适用于可以连通外网的环境）
 
 下面这一段不管：
 ```bash
@@ -47,12 +96,28 @@ yum -y install https://yum.theforeman.org/releases/2.0/el7/x86_64/foreman-releas
 yum -y install foreman-release-scl
 ```
 
+##### 配置内网YUM源
+
+根据内网实际情况配置（此处略过）
+
 
 
 #### 检查加的repos
 
 ```bash
-# yum repolist
+]# yum repolist
+Loaded plugins: product-id, search-disabled-repos, subscription-manager
+
+This system is not registered with an entitlement server. You can use subscription-manager to register.
+
+repo id                      repo name                                   status
+epel                         CentOS-7Server - EPEL                       13,594
+foreman                      Foreman 2.3                                    730
+puppet6                      Puppet 6 Repository el 7 - x86_64                8
+rhel-7-server-optional-rpms  rhel-7-server-optional-rpms                  5,198
+rhel-7-server-rpms           rhel-7-server-rpms                           5,652
+rhel-server-rhscl-7-rpms     rhel-server-rhscl-7-rpms                     8,214
+repolist: 33,396
 ```
 
 #### 配置FQDN
@@ -74,12 +139,14 @@ yum -y install foreman-release-scl
 # timedatectl set-timezone Asia/Shanghai
 ```
 
+
+
 ### 3.2 使用foreman-installer进行安装
 
-下载foreman-installer
+安装foreman-installer
 
-```
-yum -y install foreman-installer
+```bash
+ ~]# yum -y install foreman-installer
 ```
 
 启动instller安装
@@ -109,6 +176,7 @@ Preparing installation Done
 
 
 ## Foreman-Kattlo资源管理框架
+
 环境(Environment) 和发布路径（Environment Paths） :
 所有从外部同步回来得资源会先放置与 Library 库中， 然后根据不同得生命周期需求，产生不同得发布路径， 如：Library   ->   开发  ->  测试 - >  生产环境
 

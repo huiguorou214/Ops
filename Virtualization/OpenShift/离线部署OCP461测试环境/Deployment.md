@@ -1,5 +1,3 @@
-# Deployment OpenShift 4.6.1
-
 > 本章主要介绍如何对OpenShift4.6.1环境进行快速部署，能够简单上手使用的记录，适用于个人或者公司中对OpenShift容器平台的学习与研究
 
 ## Author
@@ -12,7 +10,17 @@ E-mail:shine_fire@outlook.com
 
 ## Introduction
 
-OpenShift是什么？
+### Terminology
+
+#### OpenShift是什么？
+
+#### UPI（UserProvisioned Infrastructure）
+
+离线环境安装的方案	
+
+#### IPI（Installer Provisioned Infrastructure）
+
+在线环境安装的方案
 
 
 
@@ -20,23 +28,23 @@ OpenShift是什么？
 
 ### Host List
 
-| Hostname                   | IP             | Hardware     | Role |
-| -------------------------- | -------------- | ------------ | ---- |
-| bastion.ocp4.example.com   | 192.168.31.159 | 4C/8G/120GB  |      |
-| registry.ocp4.example.com  | 192.168.31.159 | 4C/8G/120GB  |      |
-| api.ocp4.example.com       | 192.168.31.159 | 4C/8G/120GB  |      |
-| api-int.ocp4.example.com   | 192.168.31.159 | 4C/8G/120GB  |      |
-| bootstrap.ocp4.example.com | 192.168.31.158 | 4C/16G/120GB |      |
-| master-0.ocp4.example.com  | 192.168.31.160 | 4C/16G/120GB |      |
-| etcd-0.ocp4.example.com    | 192.168.31.160 | 4C/16G/120GB |      |
-| master-1.ocp4.example.com  | 192.168.31.161 | 4C/16G/120GB |      |
-| etcd-1.ocp4.example.com    | 192.168.31.161 | 4C/16G/120GB |      |
-| master-2.ocp4.example.com  | 192.168.31.162 | 4C/16G/120GB |      |
-| etcd-2.ocp4.example.com    | 192.168.31.162 | 4C/16G/120GB |      |
-| worker-0.ocp4.example.com  | 192.168.31.163 | 2C/8G/120GB  |      |
-| apps.ocp4.example.com      | 192.168.31.163 | 2C/8G/120GB  |      |
-| worker-1.ocp4.example.com  | 192.168.31.164 | 2C/8G/120GB  |      |
-| 192.168.31.100             | 192.168.31.100 | N/A          | repo |
+| Hostname                   | IP             | Hardware     | Role       |
+| -------------------------- | -------------- | ------------ | ---------- |
+| bastion.ocp4.example.com   | 192.168.31.159 | 4C/8G/120GB  |            |
+| registry.ocp4.example.com  | 192.168.31.159 | 4C/8G/120GB  | 镜像仓库   |
+| api.ocp4.example.com       | 192.168.31.159 | 4C/8G/120GB  |            |
+| api-int.ocp4.example.com   | 192.168.31.159 | 4C/8G/120GB  |            |
+| bootstrap.ocp4.example.com | 192.168.31.160 | 4C/16G/120GB | bootstrap  |
+| master-1.ocp4.example.com  | 192.168.31.161 | 4C/16G/120GB | master节点 |
+| etcd-1.ocp4.example.com    | 192.168.31.161 | 4C/16G/120GB |            |
+| master-2.ocp4.example.com  | 192.168.31.162 | 4C/16G/120GB | master节点 |
+| etcd-2.ocp4.example.com    | 192.168.31.162 | 4C/16G/120GB |            |
+| master-3.ocp4.example.com  | 192.168.31.163 | 4C/16G/120GB | master节点 |
+| etcd-3.ocp4.example.com    | 192.168.31.163 | 4C/16G/120GB |            |
+| worker-1.ocp4.example.com  | 192.168.31.164 | 2C/8G/120GB  | worker节点 |
+| apps.ocp4.example.com      | 192.168.31.164 | 2C/8G/120GB  |            |
+| worker-2.ocp4.example.com  | 192.168.31.165 | 2C/8G/120GB  | worker节点 |
+| 192.168.31.100             | 192.168.31.100 | N/A          | YUM/DNS    |
 
 Each cluster machine must meet the following **minimum requirements**:
 
@@ -63,9 +71,37 @@ Each cluster machine must meet the following **minimum requirements**:
 
 
 
-## Deployment 
+### Firewalld Ports
+
+#### 所有机器到所有机器
+
+| 协议    | 端口        | 描述                                                         |
+| ------- | :---------- | ------------------------------------------------------------ |
+| ICMP    | N/A         | 网络可访问性测试                                             |
+| TCP     | 1936        | 指标                                                         |
+| TCP     | 9000-9999   | 主机级别的服务，包括端口 9100-9101 上的节点导出器和端口 9099 上的 Cluster Version Operator |
+| TCP     | 10250-10259 | kubernetes保留的默认端口                                     |
+| TCP     | 10256       | openshift-sdn                                                |
+| UDP     | 4789        | VXLAN & Geneve                                               |
+| UDP     | 6081        | VXLAN & Geneve                                               |
+| UDP     | 9000-9999   | 主机级别的服务，包括端口9100-9101上的节点导出器              |
+| TCP/UDP | 30000-32767 | kubernetes节点端口                                           |
+
+![image-20210615112838796](Deployment.assets/image-20210615112838796.png)
+
+![image-20210615112931563](Deployment.assets/image-20210615112931563.png)
+
+
+
+
+
+## Deployment
+
+
 
 ### Create bastion
+
+---
 
 all machines are kvm VMs in this test environment 
 
@@ -81,6 +117,8 @@ virt-install \
 --nographics \
 -x "ks=http://192.168.31.100/ks/rhel7/ks.cfg"
 ```
+
+
 
 ### bastion env deploy
 
@@ -141,35 +179,40 @@ Listen 8080
 
 #### Deploy DNS
 
+正常应该是这样在bastion里面配置好DNS即可，不过我的环境里面有一个DNS服务器了，所以就没有配置在bastion这台服务器里面了，直接所有的服务器连接DNS服务器即可。
+
+DNS 用于名称解析和反向名称解析。DNS A/AAAA 或 CNAME 记录用于名称解析，PTR 记录用于反向解析名称。反向记录很重要，因为 Red Hat Enterprise Linux CoreOS（RHCOS）使用反向记录为所有节点设置主机名。另外，反向记录用于生成 OpenShift Container Platform 需要操作的证书签名请求（CSR）。
+
 ```bash
 [root@bastion ~]# yum install dnsmasq -y
 [root@bastion ~]# vim /etc/dnsmasq.d/ocp4.conf
-address=/bastion.ocp4.example.com/192.168.31.159
-address=/registry.ocp4.example.com/192.168.31.159
-address=/api.ocp4.example.com/192.168.31.159
-address=/api-int.ocp4.example.com/192.168.31.159
-address=/bootstrap.ocp4.example.com/192.168.31.158
-address=/master-0.ocp4.example.com/192.168.31.160
-address=/etcd-0.ocp4.example.com/192.168.31.160
-address=/master-1.ocp4.example.com/192.168.31.161
-address=/etcd-1.ocp4.example.com/192.168.31.161
-address=/master-2.ocp4.example.com/192.168.31.162
-address=/etcd-2.ocp4.example.com/192.168.31.162
-address=/worker-0.ocp4.example.com/192.168.31.163
-address=/worker-1.ocp4.example.com/192.168.31.164
-address=/apps.ocp4.example.com/192.168.31.163
-ptr-record=159.31.168.192.in-addr.arpa,bastion.ocp4.example.com
-ptr-record=159.31.168.192.in-addr.arpa,api.ocp4.example.com
-ptr-record=158.31.168.192.in-addr.arpa,bootstrap.ocp4.example.com
-ptr-record=160.31.168.192.in-addr.arpa,master-0.ocp4.example.com
-ptr-record=161.31.168.192.in-addr.arpa,master-1.ocp4.example.com
-ptr-record=162.31.168.192.in-addr.arpa,master-2.ocp4.example.com
-ptr-record=163.31.168.192.in-addr.arpa,worker-0.ocp4.example.com
-ptr-record=164.31.168.192.in-addr.arpa,worker-1.ocp4.example.com
-srv-host=_etcd-server-ssl._tcp.ocp4.example.com,etcd-0.ocp4.example.com,2380,10
-srv-host=_etcd-server-ssl._tcp.ocp4.example.com,etcd-1.ocp4.example.com,2380,10
-srv-host=_etcd-server-ssl._tcp.ocp4.example.com,etcd-2.ocp4.example.com,2380,10
+ddress=/bastion.ocp4.shinefire.com/192.168.31.159
+address=/registry.ocp4.shinefire.com/192.168.31.159
+address=/api.ocp4.shinefire.com/192.168.31.159
+address=/api-int.ocp4.shinefire.com/192.168.31.159
+address=/bootstrap.ocp4.shinefire.com/192.168.31.160
+address=/master-1.ocp4.shinefire.com/192.168.31.161
+address=/etcd-1.ocp4.shinefire.com/192.168.31.161
+address=/master-2.ocp4.shinefire.com/192.168.31.162
+address=/etcd-2.ocp4.shinefire.com/192.168.31.162
+address=/master-3.ocp4.shinefire.com/192.168.31.163
+address=/etcd-3.ocp4.shinefire.com/192.168.31.163
+address=/worker-1.ocp4.shinefire.com/192.168.31.164
+address=/worker-2.ocp4.shinefire.com/192.168.31.165
+address=/apps.ocp4.shinefire.com/192.168.31.163
+ptr-record=159.31.168.192.in-addr.arpa,bastion.ocp4.shinefire.com
+ptr-record=159.31.168.192.in-addr.arpa,api.ocp4.shinefire.com
+ptr-record=160.31.168.192.in-addr.arpa,bootstrap.ocp4.shinefire.com
+ptr-record=161.31.168.192.in-addr.arpa,master-1.ocp4.shinefire.com
+ptr-record=162.31.168.192.in-addr.arpa,master-2.ocp4.shinefire.com
+ptr-record=163.31.168.192.in-addr.arpa,master-3.ocp4.shinefire.com
+ptr-record=164.31.168.192.in-addr.arpa,worker-1.ocp4.shinefire.com
+ptr-record=165.31.168.192.in-addr.arpa,worker-2.ocp4.shinefire.com
+srv-host=_etcd-server-ssl._tcp.ocp4.shinefire.com,etcd-0.ocp4.shinefire.com,2380,10
+srv-host=_etcd-server-ssl._tcp.ocp4.shinefire.com,etcd-1.ocp4.shinefire.com,2380,10
+srv-host=_etcd-server-ssl._tcp.ocp4.shinefire.com,etcd-2.ocp4.shinefire.com,2380,10
 log-queries
+
 [root@bastion ~]# systemctl enable dnsmasq --now
 Created symlink from /etc/systemd/system/multi-user.target.wants/dnsmasq.service to /usr/lib/systemd/system/dnsmasq.service.
 ```
@@ -179,20 +222,20 @@ Created symlink from /etc/systemd/system/multi-user.target.wants/dnsmasq.service
 ```bash
 [root@bastion ~]# vim /etc/resolv.conf
 # Generated by NetworkManager
-search ocp4.example.com
+search ocp4.shinefire.com
 nameserver 192.168.31.159
 
-[root@bastion ~]# nslookup bootstrap.ocp4.example.com
+[root@bastion ~]# nslookup bootstrap.ocp4.shinefire.com
 Server:         192.168.31.159
 Address:        192.168.31.159#53
 
-Name:   bootstrap.ocp4.example.com
+Name:   bootstrap.ocp4.shinefire.com
 Address: 192.168.31.158
 
-[root@bastion ~]# ping -c 2 bootstrap.ocp4.example.com
-PING bootstrap.ocp4.example.com (192.168.31.158) 56(84) bytes of data.
-64 bytes from bootstrap.ocp4.example.com (192.168.31.158): icmp_seq=1 ttl=64 time=0.372 ms
-64 bytes from bootstrap.ocp4.example.com (192.168.31.158): icmp_seq=2 ttl=64 time=0.369 ms
+[root@bastion ~]# ping -c 2 bootstrap.ocp4.shinefire.com
+PING bootstrap.ocp4.shinefire.com (192.168.31.158) 56(84) bytes of data.
+64 bytes from bootstrap.ocp4.shinefire.com (192.168.31.158): icmp_seq=1 ttl=64 time=0.372 ms
+64 bytes from bootstrap.ocp4.shinefire.com (192.168.31.158): icmp_seq=2 ttl=64 time=0.369 ms
 
 --- bootstrap.ocp4.example.com ping statistics ---
 2 packets transmitted, 2 received, 0% packet loss, time 1000ms
@@ -206,6 +249,136 @@ rtt min/avg/max/mdev = 0.369/0.370/0.372/0.019 ms
 docker-io-registry-2.tar                    openshift-client-linux-4.6.6.tar.gz
 ocp4.6.6-registry-fullsize-20200105.tar.gz  openshift-install
 rhcos-4.6.1-x86_64-metal.x86_64.raw.gz      rhcos-4.5.1-x86_64-installer.x86_64.iso
+```
+
+#### Install Openshift Client
+
+```bash
+[root@bastion ~]# wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.6.6/openshift-client-linux-4.6.6.tar.gz
+--2021-06-01 00:24:54--  https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.6.6/openshift-client-linux-4.6.6.tar.gz
+Resolving mirror.openshift.com (mirror.openshift.com)... 54.173.18.88, 54.172.163.83
+Connecting to mirror.openshift.com (mirror.openshift.com)|54.173.18.88|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 24316599 (23M) [application/x-gzip]
+Saving to: ‘openshift-client-linux-4.6.6.tar.gz’
+
+100%[====================================================>] 24,316,599  1.55MB/s   in 26s
+
+2021-06-01 00:25:20 (926 KB/s) - ‘openshift-client-linux-4.6.6.tar.gz’ saved [24316599/24316599]
+
+[root@bastion ~]# tar xzvf openshift-client-linux-4.6.6.tar.gz -C /usr/local/bin/ 
+README.md
+oc
+kubectl
+
+# 验证版本号
+[root@bastion ~]# oc version
+Client Version: 4.6.6
+```
+
+#### Install openshift-install
+
+```bash
+# 去官网下载资源
+[root@bastion ~]# wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.6.6/openshift-install-linux-4.6.6.tar.gz
+--2021-06-01 00:29:05--  https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.6.6/openshift-install-linux-4.6.6.tar.gz
+Resolving mirror.openshift.com (mirror.openshift.com)... 54.173.18.88, 54.172.173.155
+Connecting to mirror.openshift.com (mirror.openshift.com)|54.173.18.88|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 86926929 (83M) [application/x-gzip]
+Saving to: ‘openshift-install-linux-4.6.6.tar.gz’
+
+100%[====================================================>] 86,926,929   997KB/s   in 69s
+
+2021-06-01 00:30:16 (1.19 MB/s) - ‘openshift-install-linux-4.6.6.tar.gz’ saved [86926929/86926929]
+
+[root@bastion ~]# tar xzvf openshift-install-linux-4.6.6.tar.gz -C /usr/local/bin/
+README.md
+openshift-install
+
+# 验证版本
+[root@bastion ~]# openshift-install version
+openshift-install 4.6.6
+built from commit db0f93089a64c5fd459d226fc224a2584e8cfb7e
+release image quay.io/openshift-release-dev/ocp-release@sha256:c7e8f18e8116356701bd23ae3a23fb9892dd5ea66c8300662ef30563d7104f39
+```
+
+
+
+### Download image
+
+---
+
+#### Download pull secret
+
+进入官网使用自己的红帽用户获取pull secret，用于后续pull镜像。可以直接点击`Copy pull secret`然后粘贴到linux中自己创建的文件里即可（主要是比直接下载了这个文件再上传到服务器中方便一点）。
+
+> 未订阅Openshift的用户，也可以申请试用的。
+
+![image-20210601004956980](Deployment.assets/image-20210601004956980.png)
+
+#### Install jq
+
+配置好epel源安装jq软件即可，安装jq工具是为了解析这个secret文件。
+
+```bash
+]# yum install jq -y
+```
+
+#### Save recret
+
+```bash
+[root@bastion ~]# mkdir -p /data/OCP-Install/ocp/secret/
+[root@bastion ~]# jq . ./pull-secret.txt  > /data/OCP-Install/ocp/secret/redhat-secret.json
+
+# 验证
+[root@bastion ~]# jq . /data/OCP-Install/ocp/secret/pull-secret.txt
+[root@bastion ~]# cat /data/OCP-Install/ocp/secret/redhat-secret.json
+```
+
+#### View images info
+
+```bash
+[root@bastion ~]# oc adm release info "quay.io/openshift-release-dev/ocp-release:4.6.6-x86_64"
+Name:      4.6.6
+Digest:    sha256:c7e8f18e8116356701bd23ae3a23fb9892dd5ea66c8300662ef30563d7104f39
+Created:   2020-11-26T04:01:37Z
+OS/Arch:   linux/amd64
+Manifests: 444
+
+Pull From: quay.io/openshift-release-dev/ocp-release@sha256:c7e8f18e8116356701bd23ae3a23fb9892dd5ea66c8300662ef30563d7104f39
+
+Release Metadata:
+  Version:  4.6.6
+  Upgrades: 4.5.16, 4.5.17, 4.5.18, 4.5.19, 4.5.20, 4.5.21, 4.6.1, 4.6.3, 4.6.4, 4.6.5
+  Metadata:
+
+Component Versions:
+  kubernetes 1.19.0
+  machine-os 46.82.202011210620-0 Red Hat Enterprise Linux CoreOS
+
+Images:
+  NAME                                           DIGEST
+  aws-ebs-csi-driver                             sha256:0fa7138849062610db75f1de94606e1275dffb8f41af64e7d57afa6e09d0d2d9
+  aws-ebs-csi-driver-operator                    sha256:2c3bc6cfd85707b0e11f478c8d3bbf321e0d0a0c75accba25501e9290937dbba
+  aws-machine-controllers                        sha256:4c56695dceb2df100348432e10fc4939319a581b148f1981af53a82310681332
+```
+
+#### Download ocp core images
+
+```bash
+[root@bastion ~]# mkdir -p /data/OCP-4.6.6/ocp-image/ocp-image-4.6.6/
+[root@bastion ~]# oc adm release mirror -a /data/OCP-Install/ocp/secret/redhat-secret.json --from=quay.io/openshift-release-dev/ocp-release:4.6.6-x86_64 --to-dir=/data/OCP-4.6.6/ocp-image/ocp-image-4.6.6
+...
+...
+Success
+Update image:  openshift/release:4.6.6
+
+To upload local images to a registry, run:
+
+    oc image mirror --from-dir=/data/OCP-4.6.6/ocp-image/ocp-image-4.6.6 'file://openshift/release:4.6.6*' REGISTRY/REPOSITORY
+
+Configmap signature file /data/OCP-4.6.6/ocp-image/ocp-image-4.6.6/config/signature-sha256-c7e8f18e81163567.yaml created
 ```
 
 
@@ -224,12 +397,19 @@ rhcos-4.6.1-x86_64-metal.x86_64.raw.gz      rhcos-4.5.1-x86_64-installer.x86_64.
 
 ```bash
 [root@bastion ~]# cd /opt/registry/certs/
-[root@bastion certs]# openssl req -subj '/CN=registry.ocp4.example.com/O=My Company Name LTD./C=US' -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout domain.key -out domain.crt
+[root@bastion certs]# openssl req -subj '/CN=registry.ocp4.shinefire.com/O=My Company Name LTD./C=US' -new -newkey rsa:2048 -days 3650 -nodes -x509 -keyout domain.key -out domain.crt
 Generating a 2048 bit RSA private key
 .............................................+++
 ........+++
 writing new private key to 'domain.key'
 -----
+```
+
+#### Update crt
+
+```bash
+[root@bastion certs]# cp /opt/registry/certs/domain.crt /etc/pki/ca-trust/source/anchors/
+[root@bastion certs]# update-ca-trust
 ```
 
 #### Configure User & Password
@@ -277,6 +457,27 @@ CONTAINER ID  IMAGE                         COMMAND               CREATED       
 b222b1dad284  docker.io/library/registry:2  /entrypoint.sh /e...  32 seconds ago  Up 31 seconds ago  0.0.0.0:5000->5000/tcp  mirror-registry
 ```
 
+#### Generate local registry secret
+
+用于后续镜像导入使用
+
+```bash
+[root@bastion certs]# podman login -u core -p redhat --authfile /data/OCP-Install/ocp/secret/registry-secret.json https://registry.ocp4.shinefire.com:5000
+Login Succeeded!
+[root@bastion certs]# ls /data/OCP-Install/ocp/secret/registry-secret.json
+/data/OCP-Install/ocp/secret/registry-secret.json
+```
+
+#### Mirror images
+
+将下载好的openshift核心镜像全部同步到内部的这个registry中
+
+```bash
+[root@bastion ~]# oc image mirror -a /data/OCP-Install/ocp/secret/registry-secret.json --dir=/data/OCP-4.6.6/ocp-image/ocp-image-4.6.6/ file://openshift/release:4.6.6* https://registry.ocp4.shinefire.com:5000/ocp4/openshift4
+```
+
+
+
 #### Uncompress ocp registry
 
 ```bash
@@ -300,7 +501,7 @@ Error: cannot listen on the TCP port: listen tcp4 :5000: bind: address already i
 #### Test result
 
 ```bash
-[root@bastion ~]# curl -u core:redhat -k https://registry.ocp4.example.com:5000/v2/_catalog
+[root@bastion ~]# curl -u core:redhat -k https://registry.ocp4.shinefire.com:5000/v2/_catalog
 {"repositories":["ocp4/openshift466","operator/openshift4/ose-cluster-logging-operator","operator/openshift4/ose-cluster-logging-operator-bundle","operator/openshift4/ose-elasticsearch-operator","operator/openshift4/ose-elasticsearch-operator-bundle","operator/openshift4/ose-elasticsearch-proxy","operator/openshift4/ose-logging-curator5","operator/openshift4/ose-logging-elasticsearch6","operator/openshift4/ose-logging-fluentd","operator/openshift4/ose-logging-kibana6","operator/openshift4/ose-oauth-proxy","redhat/redhat-operator-index"]}
 
 [root@bastion ~]# curl -u core:redhat -k https://registry.ocp4.example.com:5000/v2/ocp4/openshift466/tags/list
@@ -944,3 +1145,7 @@ Mar 17 06:10:28 bootstrap systemd[1]: Stopped Bootstrap a Kubernetes cluster.
 
 - openshift 4.5.9 离线安装 https://zhangguanzhang.github.io/2020/09/18/ocp-4.5-install/
 - 官方文档 https://docs.openshift.com/container-platform/4.5/welcome/index.html
+- Openshift4.5.6的安装参考指南 https://www.ethanzhang.xyz/openshift4.5.6%E7%9A%84%E5%AE%89%E8%A3%85%E5%8F%82%E8%80%83%E6%8C%87%E5%8D%97/
+- 容器技术之Docker私有镜像仓库docker-distribution https://www.cnblogs.com/qiuhom-1874/p/13058338.html
+- Docker Registry/Distribution概述 https://www.huaweicloud.com/articles/e1f211fd1f5104559cf77e4d28295c26.html
+- OPENSHIFT4.7安装手册-其他 http://www.zhishibo.com/articles/4616.html

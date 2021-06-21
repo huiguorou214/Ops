@@ -12,31 +12,41 @@ Inspection Template
 
 ### OS Basic Info
 
-- [ ] hostname/fqdn
-- [ ] ip addr
-- [ ] os version
-- [ ] kernel version
+- [x] hostname/fqdn
+- [x] ip addr
+- [x] os version
+- [x] kernel version
 
 
 
 ### OS Basic Config
 
-- [ ] swap
-  configure & usage info
-- [ ] /etc/fstab
-- [ ] time server configure
-- [ ] sshd_config
-- [ ] password policy
-- [ ] user login lock policy
-- [ ] auditd configure and enable
+- [x] swap
+  configure (total != 0)
+- [x] /etc/fstab
+- [x] time server configure
+- [x] sshd_config
+- [x] password policy
+- [x] user login lock policy
+- [x] auditd configure and enable
 
 
 
 ### About Security
 
-- [ ] kernel_args
-  - [ ] kernel.sysrq
-  - [ ] 
+- [x] kernel_args
+  - [ ] kernel.sysrq = 1
+  - [ ] vm.swappiness = 10
+  - [ ] net.ipv4.tcp_tw_reuse = 0
+  - [ ] net.ipv4.conf.all.forwarding = 0
+  - [ ] net.ipv4.conf.all.arp_filter = 0
+  - [ ] net.ipv4.conf.all.rp_filter = 0
+  - [ ] net.core.somaxconn = 65535
+  - [ ] net.ipv4.tcp_syncookies = 1
+  - [ ] net.ipv4.ip_forward = 0
+  - [ ] net.ipv4.conf.all.accept_redirects = 0
+  - [ ] net.ipv4.conf.default.accept_redirects = 0
+  - [ ] net.ipv4.icmp_ignore_bogus_error_responses = 1
 - [ ] file permission
   - [ ] /etc/crontab
   - [ ] /etc/securetty
@@ -44,31 +54,33 @@ Inspection Template
   - [ ] /boot/efi/EFI/redhat/grub.cfg
   - [ ] /etc/inittab
   - [ ] /etc/login.defs
-- [ ] ulimit
+- [x] ulimit
 
 
 
 ### About Running Status
 
-- [ ] selinux status
-- [ ] firewalld status
-- [ ] zombie process
-- [ ] uptime
-- [ ] cpu load
-- [ ] FileSystem usage info
-- [ ] memory usage info
-- [ ] kdump service status
-- [ ] crash file in /var/crash/
-- [ ] enable services
-- [ ] disable services
-- [ ] run level
+- [x] selinux status
+- [x] firewalld status
+- [x] zombie process
+- [x] uptime
+- [x] cpu load
+- [x] FileSystem usage info
+- [x] memory usage info
+- [x] swap usage info 
+- [x] kdump service status
+- [x] crash file in /var/crash/
+- [x] enable services
+- [x] disable services
+- [x] run level
 
 
 
 ### About Error Log
 
-- [ ] messages
-- [ ] dmesg
+- [x] messages
+- [x] dmesg
+- [x] secure
 
 
 

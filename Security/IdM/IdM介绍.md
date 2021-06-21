@@ -1,5 +1,7 @@
 # FreeIPA说明及要求
 
+
+
 ## 一、FreeIPA简介
 
 FreeIPA是一个集成的安全信息管理解决方案，它结合了389目录服务器、MIT Kerberos、NTP、Dogtag(证书系统)，由web界面和命令行管理工具组成。

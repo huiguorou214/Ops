@@ -19,7 +19,7 @@ auditctl -w path_to_file -p permissions -k key_name
 添加规则到 /etc/audit/audit.rules(*RHEL7为/etc/audit/rules.d/audit.rules*) 文件中使用永久性添加规则
 
 ```bash
- 
+ -w /etc/crontab -p wa -k crontab
 ```
 
 
