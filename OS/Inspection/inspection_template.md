@@ -71,7 +71,34 @@ Inspection Template
 - [x] kdump service status
 - [x] crash file in /var/crash/
 - [x] enable services
+  - [x] sshd
+  - [x] crond 
+  - [x] auditd
+  - [x] rsyslog
+  - [x] kdump
+  - [x] ntpd
+  - [x] chronyd
+  - [ ] irqbalance  中断平衡服务
 - [x] disable services
+  - [x] firewalld  防火墙
+  - [x] iptables  防火墙
+  - [x] ip6tables  ipv6防火墙
+  - [x] cups  打印服务
+  - [x] postfix  
+  - [x] pcscd  smart卡登录服务
+  - [x] smartd
+  - [x] alsasound
+  - [x] iscsitarget
+  - [x] smb
+  - [x] acpid  acpi高级电源管理服务
+  - [x] cpuspeed  cpu节能工具
+  - [x] xinetd  rhel6的
+  - [x] ypbind
+  - [x] autofs
+  - [x] rhnsd  红帽网络服务
+  - [x] avahi
+  - [x] *abrtd*   待考证服务
+  - [ ] iscsitarget  iSCSI target服务
 - [x] run level
 
 

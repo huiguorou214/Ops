@@ -12,6 +12,10 @@ E-mail:shine_fire@outlook.com
 
 ## 一、原理介绍
 
+待补充
+
+
+
 ## 二、使用步骤
 
 ### 2.1 vncserver方式使用
@@ -121,5 +125,5 @@ else
 fi
 ```
 
-## 参考文献
+## 参考
 
