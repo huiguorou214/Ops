@@ -28,7 +28,7 @@ E-mail:shine_fire@outlook.com
 
 ```bash
 # nmcli connection add con-name 'static-ip' ifname eth0 type Ethernet ip4 172.25.0.11/24 gw4 172.25.0.254
-# nmcli connection modify static-ip ipv4.dns 172.25.254.254
+# nmcli connection modify static-ip ipv4.dns 8.8.8.8
 # nmcli connection modify static-ip ipv4.method manual 
 # nmcli connection modify static-ip connection.autoconnect yes
 # nmcli connection up static-ip 

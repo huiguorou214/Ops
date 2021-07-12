@@ -12,17 +12,17 @@
 
 ### 测试环境架构说明
 
-| Role             | Hostname/domain             | IPADDR         | OS Version         |
-| ---------------- | --------------------------- | -------------- | ------------------ |
-| AD parent DNS    | dns1.wal-mart.com           | 192.168.31.121 | win server 2012 r2 |
-| AD parent server | ad-parent.wal-mart.com      | 192.168.31.123 | win server 2012 r2 |
-| AD child server  | ad-child.cn.wal-mart.com    | 192.168.31.124 | win server 2012 r2 |
-| Win PC1          | winpc1.wal-mart.com         | 192.168.31.125 | win server 2012 r2 |
-| Win PC2          | winpc2.cn.wal-mart.com      | 192.168.31.126 | win server 2012 r2 |
-| IdM Server       | server.idm.cn.wal-mart.com  | 192.168.31.130 | CentOS7.8          |
-| IdM Client1      | client1.idm.cn.wal-mart.com | 192.168.31.131 | CentOS7.8          |
-| IdM Client2      | client2.cn.wal-mart.com     | 192.168.31.132 |                    |
-| IDM Client3      | client3.cn.wal-mart.com     | 192.168.31.133 |                    |
+| Role             | Hostname/domain              | IPADDR         | OS Version         |
+| ---------------- | ---------------------------- | -------------- | ------------------ |
+| AD parent DNS    | dns1.shinefire.com           | 192.168.31.121 | win server 2012 r2 |
+| AD parent server | ad-parent.shinefire.com      | 192.168.31.123 | win server 2012 r2 |
+| AD child server  | ad-child.cn.shinefire.com    | 192.168.31.124 | win server 2012 r2 |
+| Win PC1          | winpc1.shinefire.com         | 192.168.31.125 | win server 2012 r2 |
+| Win PC2          | winpc2.cn.shinefire.com      | 192.168.31.126 | win server 2012 r2 |
+| IdM Server       | server.idm.cn.shinefire.com  | 192.168.31.130 | CentOS7.8          |
+| IdM Client1      | client1.idm.cn.shinefire.com | 192.168.31.131 | CentOS7.8          |
+| IdM Client2      | client2.cn.shinefire.com     | 192.168.31.132 |                    |
+| IDM Client3      | client3.cn.shinefire.com     | 192.168.31.133 |                    |
 
 
 
@@ -81,23 +81,23 @@ windows server 2012 r2 激活密钥：78NJB-CB3WX-GWPCM-VMKG7-94QWW
 非交互式安装
 
 ```bash
-# ipa-server-install --mkhomedir --hostname server.idm.cn.wal-mart.com --domain idm.cn.wal-mart.com --realm IDM.CN.WAL-MART.COM --ds-password Redhat2020 --admin-password Redhat2020 --unattended 
+# ipa-server-install --mkhomedir --hostname server.idm.cn.shinefire.com --domain idm.cn.shinefire.com --realm IDM.CN.shinefire.COM --ds-password Redhat2020 --admin-password Redhat2020 --unattended 
 ```
 
 ### 添加DNS记录
 
 ```bash
 # cat /tmp/ipa.system.records.q04dE2.db
-_kerberos-master._tcp.idm.cn.wal-mart.com. 86400 IN SRV 0 100 88 server.idm.cn.wal-mart.com.
-_kerberos-master._udp.idm.cn.wal-mart.com. 86400 IN SRV 0 100 88 server.idm.cn.wal-mart.com.
-_kerberos._tcp.idm.cn.wal-mart.com. 86400 IN SRV 0 100 88 server.idm.cn.wal-mart.com.
-_kerberos._udp.idm.cn.wal-mart.com. 86400 IN SRV 0 100 88 server.idm.cn.wal-mart.com.
-_kerberos.idm.cn.wal-mart.com. 86400 IN TXT "IDM.CN.WAL-MART.COM"
-_kpasswd._tcp.idm.cn.wal-mart.com. 86400 IN SRV 0 100 464 server.idm.cn.wal-mart.com.
-_kpasswd._udp.idm.cn.wal-mart.com. 86400 IN SRV 0 100 464 server.idm.cn.wal-mart.com.
-_ldap._tcp.idm.cn.wal-mart.com. 86400 IN SRV 0 100 389 server.idm.cn.wal-mart.com.
-_ntp._udp.idm.cn.wal-mart.com. 86400 IN SRV 0 100 123 server.idm.cn.wal-mart.com.
-ipa-ca.idm.cn.wal-mart.com. 86400 IN A 192.168.31.130
+_kerberos-master._tcp.idm.cn.shinefire.com. 86400 IN SRV 0 100 88 server.idm.cn.shinefire.com.
+_kerberos-master._udp.idm.cn.shinefire.com. 86400 IN SRV 0 100 88 server.idm.cn.shinefire.com.
+_kerberos._tcp.idm.cn.shinefire.com. 86400 IN SRV 0 100 88 server.idm.cn.shinefire.com.
+_kerberos._udp.idm.cn.shinefire.com. 86400 IN SRV 0 100 88 server.idm.cn.shinefire.com.
+_kerberos.idm.cn.shinefire.com. 86400 IN TXT "IDM.CN.shinefire.COM"
+_kpasswd._tcp.idm.cn.shinefire.com. 86400 IN SRV 0 100 464 server.idm.cn.shinefire.com.
+_kpasswd._udp.idm.cn.shinefire.com. 86400 IN SRV 0 100 464 server.idm.cn.shinefire.com.
+_ldap._tcp.idm.cn.shinefire.com. 86400 IN SRV 0 100 389 server.idm.cn.shinefire.com.
+_ntp._udp.idm.cn.shinefire.com. 86400 IN SRV 0 100 123 server.idm.cn.shinefire.com.
+ipa-ca.idm.cn.shinefire.com. 86400 IN A 192.168.31.130
 ```
 
 ## IdM Client部署
@@ -132,21 +132,21 @@ Password for admin@IDM.COM:
 #### 在server端运行下面的命令先生成一个随机密码
 
 ```
-# ipa host-add client1.cn.wal-mart.com --random
+# ipa host-add client1.cn.shinefire.com --random
 ------------------------------------
-Added host "client1.cn.wal-mart.com"
+Added host "client1.cn.shinefire.com"
 ------------------------------------
-  Host name: client1.cn.wal-mart.com
+  Host name: client1.cn.shinefire.com
   Random password: 6GtWb5Ymtk4i5Cr3BPg6BEk
   Password: True
   Keytab: False
-  Managed by: client1.cn.wal-mart.com
+  Managed by: client1.cn.shinefire.com
 ```
 
 #### 在client端运行安装程序(待修改)
 
 ```
-# ipa-client-install --password '4MtWHnOUWP2hLi77RkfL3We' --hostname client1.idm.cn.wal-mart.com --server server.idm.cn.wal-mart.com --domain idm.cn.wal-mart.com --realm IDM.CN.WAL-MART.COM --mkhomedir --unattended 
+# ipa-client-install --password '4MtWHnOUWP2hLi77RkfL3We' --hostname client1.idm.cn.shinefire.com --server server.idm.cn.shinefire.com --domain idm.cn.shinefire.com --realm IDM.CN.shinefire.COM --mkhomedir --unattended 
 ```
 
 ## IdM用户管理
@@ -181,7 +181,7 @@ Added host "client1.cn.wal-mart.com"
 ### 建立trust
 
 ```bash
-# ipa trust-add --type=ad wal-mart.com --admin super --password
+# ipa trust-add --type=ad shinefire.com --admin super --password
 ```
 
 ### 默认已建立trust，无法再次建立
@@ -193,15 +193,15 @@ Added host "client1.cn.wal-mart.com"
 1. Request a ticket for an IdM user:
 
    ```bash
-   [root@server ~]# kinit super@wal-mart.com
-   Password for super@wal-mart.com:
+   [root@server ~]# kinit super@shinefire.com
+   Password for super@shinefire.com:
    ```
 
 2. Request service tickets for a service within the IdM domain:
 
    ```bash
-   [root@server ~]# kvno -S host server.ipa.cn.wal-mart.com
-   host/server.ipa.cn.wal-mart.com@IPA.CN.WAL-MART.COM: kvno = 2
+   [root@server ~]# kvno -S host server.ipa.cn.shinefire.com
+   host/server.ipa.cn.shinefire.com@IPA.CN.shinefire.COM: kvno = 2
    ```
 
 3. If the AD service ticket is successfully granted, there is a cross-realm ticket-granting ticket (TGT) listed with all of the other requested tickets. The TGT is named `krbtgt/IPA.DOMAIN@AD.DOMAIN`.
@@ -209,22 +209,22 @@ Added host "client1.cn.wal-mart.com"
    ```bash
    [root@server ~]# klist
    Ticket cache: KEYRING:persistent:0:krb_ccache_jXEGuS4
-   Default principal: super@WAL-MART.COM
+   Default principal: super@shinefire.COM
    
    Valid starting       Expires              Service principal
-   07/30/2020 15:23:46  07/31/2020 01:20:54  cifs/ad-parent.wal-mart.com@WAL-MART.COM
+   07/30/2020 15:23:46  07/31/2020 01:20:54  cifs/ad-parent.shinefire.com@shinefire.COM
            renew until 07/31/2020 15:20:50
-   07/30/2020 15:23:46  07/31/2020 01:20:54  cifs/ad-parent.wal-mart.com@
+   07/30/2020 15:23:46  07/31/2020 01:20:54  cifs/ad-parent.shinefire.com@
            renew until 07/31/2020 15:20:50
-   07/30/2020 15:23:28  07/31/2020 01:20:54  host/server.ipa.cn.wal-mart.com@IPA.CN.WAL-MART.COM
+   07/30/2020 15:23:28  07/31/2020 01:20:54  host/server.ipa.cn.shinefire.com@IPA.CN.shinefire.COM
            renew until 07/31/2020 15:20:50
-   07/30/2020 15:21:15  07/31/2020 01:20:54  krbtgt/IPA.CN.WAL-MART.COM@WAL-MART.COM
+   07/30/2020 15:21:15  07/31/2020 01:20:54  krbtgt/IPA.CN.shinefire.COM@shinefire.COM
            renew until 07/31/2020 15:20:50
-   07/30/2020 15:20:54  07/31/2020 01:20:54  krbtgt/WAL-MART.COM@WAL-MART.COM
+   07/30/2020 15:20:54  07/31/2020 01:20:54  krbtgt/shinefire.COM@shinefire.COM
            renew until 07/31/2020 15:20:50
    ```
 
-   example：*krbtgt/IPA.CN.WAL-MART.COM@WAL-MART.COM*
+   example：*krbtgt/IPA.CN.shinefire.COM@shinefire.COM*
 
 4. 
 
@@ -237,7 +237,7 @@ Added host "client1.cn.wal-mart.com"
 ssh登录操作如下：
 
 ```bash
-# ssh super@wal-mart.com@client1.idm.cn.wal-mart.com
+# ssh super@shinefire.com@client1.idm.cn.shinefire.com
 Password:
 Last login: Sun Aug  9 03:58:13 2020 from server.idm.com
 ```
@@ -245,7 +245,7 @@ Last login: Sun Aug  9 03:58:13 2020 from server.idm.com
 系统中切换到AD域用户：
 
 ```bash
-$ su - test1@wal-mart.com
+$ su - test1@shinefire.com
 Password:
 Last login: Sun Aug  9 11:52:49 CST 2020 from server.idm.com on pts/1
 Last failed login: Sun Aug  9 11:53:58 CST 2020 on pts/1
@@ -257,7 +257,7 @@ There was 1 failed login attempt since the last successful login.
 
 ### 已建立trust
 
-因为cn.wal-mart.com本来就已经是根域wal-mart.com的一个子域了，所以本来就已经建立了trust了，那我现在似乎就没办法继续再建立trust了...
+因为cn.shinefire.com本来就已经是根域shinefire.com的一个子域了，所以本来就已经建立了trust了，那我现在似乎就没办法继续再建立trust了...
 
 ![image-20200729214345728](IdM与AD建立trust测试.assets/image-20200729214345728.png)
 
@@ -280,16 +280,16 @@ There was 1 failed login attempt since the last successful login.
 执行命令trust-fetch-domains：
 
 ```bash
-# ipa trust-fetch-domains wal-mart.com
-ipa: ERROR: wal-mart.com: trust not found
+# ipa trust-fetch-domains shinefire.com
+ipa: ERROR: shinefire.com: trust not found
 ```
 
 执行命令trustdomain-find：
 
 ```bash
 # ipa trustdomain-find
-Realm name: wal-mart.com
-ipa: ERROR: wal-mart.com: trust not found
+Realm name: shinefire.com
+ipa: ERROR: shinefire.com: trust not found
 ```
 
 这种情况下，AD域的用户也无法登陆IPA的WEB界面。
