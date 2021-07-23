@@ -1,3 +1,5 @@
+
+
 # NFS
 
 ## 环境说明
@@ -67,3 +69,9 @@ anongid：设置访问nfs服务的用户的gid
 root_squash：默认选项 root用户创建的文件的属主和属组都变成nfsnobody,其他人server端是它自己，client端是nobody。
 no_root_squash：root用户创建的文件属主和属组还是root，其他人server端是它自己uid，client端是nobody。
 all_squash：不管是root还是其他普通用户创建的文件的属主和属组都是nfsnobody
+
+
+
+## Reference
+
+- [CentOS 7 下 yum 安装和配置 NFS](https://qizhanming.com/blog/2018/08/08/how-to-install-nfs-on-centos-7)

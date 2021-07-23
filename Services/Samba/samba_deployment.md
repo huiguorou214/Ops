@@ -20,6 +20,18 @@ E-mail:shine_fire@outlook.com
 
 
 
+## Deployment
+
+Install samba
+
+```bash
+# yum install -y samba
+```
+
+
+
+
+
 ## References
 
 
