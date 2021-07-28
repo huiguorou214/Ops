@@ -18,4 +18,4 @@
 
 个人技能与学习方向：
 
-![我的运维技能](README.assets/我的运维技能.png)
+![My Skills](README.assets/My Skills.png)
