@@ -18,4 +18,4 @@
 
 个人技能与学习方向：
 
-![My Skills](README.assets/My Skills.png)
+![My_Skills](README.assets/My_Skills.png)
