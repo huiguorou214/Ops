@@ -155,7 +155,7 @@ Prometheus支持三种类型的途径从目标上抓取（Scrape）指标数据�
 
 - Exporters
 - Instrumentation
-- Pushgateway，我觉得这个设计真的挺棒的，适用于一些短期任务数据生产者之类，不知道什么时候临时生产一些数据也不好暴露展示了，就直接自己先push到这个pushgateway中间商，Prometheus自己看自己的安排去这个中间商这里pull指标数据就完事了。
+- Pushgateway，我觉得这个设计真的挺棒的，适用于一些短期任务（Short-lived jobs）数据生产者之类，不知道什么时候临时生产一些数据也不好暴露展示了，就直接自己什么时候生产了数据就先push到这个pushgateway中间商，Prometheus自己看自己的安排去这个中间商这里pull指标数据就完事了。
 
 图示：
 
@@ -185,19 +185,477 @@ Prometheus本身在狭义上来说主要是一个TSDB，负责时序型指标数
 
 
 
-### Prometheus数据模型（待补充）
+### Prometheus数据模型
+
+#### Prometheus数据采集的原理
+
+Prometheus是时间序列数据：按照时间顺序记录系统、设备状态变化的数据，每个数据成为一个样本
+
+- 数据采集以特定的时间周期进行，因而随着时间流逝，讲这些样本数据记录下来，将生成一个离散的样本数据序列。注意：**采集的时候，其实如果完全是同一时间的话，指标过多压力会很大，所以它其实是将所有的指标随机分散在一个时间窗口内进行采集**
+- 该序列也称为向量（vector）；而将多个序列放在同一个坐标系内（以时间为横轴，以序列为纵轴），将形成一个由数据点组成的矩阵；
+- prometheus默认是存放一个月的数据，如果对数据有特别需要，想长时间保留或者用作其他数据分析用途的话，还需要借助额外的数据库来存储比较合适
+
+![image-20210804225032361](pictures/image-20210804225032361.png)
 
 
 
-### Prometheus指标类型（待补充）
 
 
 
-#### Prometheus架构
+
+### Prometheus指标类型
+
+PromQL有四个指标类型，它们主要由Prometheus的客户端库使用
+
+- Counter：计数器，单调递增，除非重置（例如服务器或进程重启）；
+- Gauge：仪表盘，可增可减的数据
+- Histogram：直方图，将时间范围内的数据划分成不同的时间段，并各自评估其样本个数及样本值之和，因而可计算出分位数
+  - 可用于分析因异常值而引起的平均值过大的问题
+  - 分位数计算要使用专用的histogram_quantile函数
+- Summary：类似于Histogram，但客户端会直接计算并上报分位数
+
+
+
+
+
+
+
+### Prometheus架构
 
 架构图：
 
 ![image-20210804080003100](pictures/image-20210804080003100.png)
+
+
+
+
+
+## Deployment
+
+### 环境说明
+
+操作系统：RHEL7.9
+
+Prometheus版本：2.29
+
+节点说明：
+
+| IP            | Hostname           | Role    |
+| ------------- | ------------------ | ------- |
+| 192.168.31.62 | prometheus-server1 | server  |
+| 192.168.31.63 | prometheus-client1 | client1 |
+| 192.168.31.64 | prometheus-client2 | client2 |
+| 192.168.31.65 | prometheus-client3 | client3 |
+
+
+
+
+
+### 安装包获取说明
+
+安装方式一般有两种
+
+1. 直接去官网下载使用源码包解压安装
+2. 配置yum仓库之类的，来进行安装
+
+这里我使用的是通过下载源码包来进行安装
+
+
+
+源码包的获取方法：直接到[Prometheus官网](https://prometheus.io/)中的[Download界面](https://prometheus.io/download/)即可看到官方发布的适用于各个操作系统以及架构的源码包，可以根据自己的实际情况来进行选择
+
+![image-20210804082810371](pictures/image-20210804082810371.png)
+
+
+
+### 下载安装包
+
+我这里使用选择好相应的源码包之后，直接copy了下载链接在我的机器中直接使用wget下载：
+
+```bash
+[root@prometheus-server1 ~]# cd prometheus-softs/
+[root@prometheus-server1 prometheus-softs]# wget https://github.com/prometheus/prometheus/releases/download/v2.28.1/prometheus-2.28.1.linux-amd64.tar.gz
+--2021-08-04 08:23:42--  https://github.com/prometheus/prometheus/releases/download/v2.28.1/prometheus-2.28.1.linux-amd64.tar.gz
+Resolving github.com (github.com)... 13.229.188.59
+Connecting to github.com (github.com)|13.229.188.59|:443... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: https://github-releases.githubusercontent.com/6838921/4063cb00-da9b-11eb-8735-e43628dda2bc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20210804%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210804T002139Z&X-Amz-Expires=300&X-Amz-Signature=d06b0824106fa369bc103914cbba557b90e86fe857a1387e0f24c38f041fbb2f&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=6838921&response-content-disposition=attachment%3B%20filename%3Dprometheus-2.28.1.linux-amd64.tar.gz&response-content-type=application%2Foctet-stream [following]
+--2021-08-04 08:23:43--  https://github-releases.githubusercontent.com/6838921/4063cb00-da9b-11eb-8735-e43628dda2bc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20210804%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210804T002139Z&X-Amz-Expires=300&X-Amz-Signature=d06b0824106fa369bc103914cbba557b90e86fe857a1387e0f24c38f041fbb2f&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=6838921&response-content-disposition=attachment%3B%20filename%3Dprometheus-2.28.1.linux-amd64.tar.gz&response-content-type=application%2Foctet-stream
+Resolving github-releases.githubusercontent.com (github-releases.githubusercontent.com)... 185.199.108.154, 185.199.109.154, 185.199.111.154, ...
+Connecting to github-releases.githubusercontent.com (github-releases.githubusercontent.com)|185.199.108.154|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 71109475 (68M) [application/octet-stream]
+Saving to: ‘prometheus-2.28.1.linux-amd64.tar.gz’
+
+100%[==============================================================================================================================>] 71,109,475  19.4MB/s   in 4.7s
+
+2021-08-04 08:23:48 (14.4 MB/s) - ‘prometheus-2.28.1.linux-amd64.tar.gz’ saved [71109475/71109475]
+```
+
+
+
+### Prometheus
+
+#### 安装Prometheus
+
+将下载好的安装包，解压到指定的路径下并进行编译安装
+
+```bash
+[root@prometheus-server1 prometheus-softs]# ls
+prometheus-2.28.1.linux-amd64.tar.gz
+[root@prometheus-server1 prometheus-softs]# tar xzf prometheus-2.28.1.linux-amd64.tar.gz -C /usr/local/
+[root@prometheus-server1 prometheus-softs]# cd /usr/local/
+[root@prometheus-server1 local]# ls
+bin  etc  games  include  lib  lib64  libexec  prometheus-2.28.1.linux-amd64  sbin  share  src
+[root@prometheus-server1 local]# ln -snf prometheus-2.28.1.linux-amd64 prometheus  ## 加nf参数主要是统一一下，如果以后需要做软链接更新的话，也直接用这参数即可
+[root@prometheus-server1 local]# ls
+bin  etc  games  include  lib  lib64  libexec  prometheus  prometheus-2.28.1.linux-amd64  sbin  share  src
+[root@prometheus-server1 local]# cd prometheus
+[root@prometheus-server1 prometheus]# ls
+console_libraries  consoles  LICENSE  NOTICE  prometheus  prometheus.yml  promtool
+```
+
+
+
+#### 运行Prometheus
+
+进入到prometheus的解压目录后，直接启动prometheus这个二进制文件就可以运行prometheus
+
+```bash
+[root@prometheus-server1 prometheus]# ./prometheus
+level=info ts=2021-08-04T00:59:07.173Z caller=main.go:389 msg="No time or size retention was set so using the default time retention" duration=15d
+level=info ts=2021-08-04T00:59:07.173Z caller=main.go:443 msg="Starting Prometheus" version="(version=2.28.1, branch=HEAD, revision=b0944590a1c9a6b35dc5a696869f75f422b107a1)"
+level=info ts=2021-08-04T00:59:07.173Z caller=main.go:448 build_context="(go=go1.16.5, user=root@2915dd495090, date=20210701-15:20:10)"
+level=info ts=2021-08-04T00:59:07.173Z caller=main.go:449 host_details="(Linux 3.10.0-1160.el7.x86_64 #1 SMP Tue Aug 18 14:50:17 EDT 2020 x86_64 prometheus-server1 (none))"
+level=info ts=2021-08-04T00:59:07.173Z caller=main.go:450 fd_limits="(soft=1024, hard=4096)"
+level=info ts=2021-08-04T00:59:07.173Z caller=main.go:451 vm_limits="(soft=unlimited, hard=unlimited)"
+level=info ts=2021-08-04T00:59:07.177Z caller=web.go:541 component=web msg="Start listening for connections" address=0.0.0.0:9090
+level=info ts=2021-08-04T00:59:07.178Z caller=main.go:824 msg="Starting TSDB ..."
+level=info ts=2021-08-04T00:59:07.179Z caller=tls_config.go:191 component=web msg="TLS is disabled." http2=false
+level=info ts=2021-08-04T00:59:07.181Z caller=head.go:780 component=tsdb msg="Replaying on-disk memory mappable chunks if any"
+level=info ts=2021-08-04T00:59:07.181Z caller=head.go:794 component=tsdb msg="On-disk memory mappable chunks replay completed" duration=4.609µs
+level=info ts=2021-08-04T00:59:07.181Z caller=head.go:800 component=tsdb msg="Replaying WAL, this may take a while"
+level=info ts=2021-08-04T00:59:07.182Z caller=head.go:854 component=tsdb msg="WAL segment loaded" segment=0 maxSegment=0
+level=info ts=2021-08-04T00:59:07.182Z caller=head.go:860 component=tsdb msg="WAL replay completed" checkpoint_replay_duration=12.253µs wal_replay_duration=199.413µs total_replay_duration=231.924µs
+level=info ts=2021-08-04T00:59:07.182Z caller=main.go:851 fs_type=XFS_SUPER_MAGIC
+level=info ts=2021-08-04T00:59:07.182Z caller=main.go:854 msg="TSDB started"
+level=info ts=2021-08-04T00:59:07.182Z caller=main.go:981 msg="Loading configuration file" filename=prometheus.yml
+level=info ts=2021-08-04T00:59:07.184Z caller=main.go:1012 msg="Completed loading of configuration file" filename=prometheus.yml totalDuration=2.099877ms remote_storage=3.767µs web_handler=451ns query_engine=1.563µs scrape=1.75464ms scrape_sd=40.456µs notify=45.335µs notify_sd=10.851µs rules=15.679µs
+level=info ts=2021-08-04T00:59:07.184Z caller=main.go:796 msg="Server is ready to receive web requests."
+
+```
+
+另外开一个终端，可以看到prometheus的监听端口默认为9090 
+
+```bash
+[root@prometheus-server1 ~]# ss -ntl
+State      Recv-Q Send-Q Local Address:Port               Peer Address:Port     
+LISTEN     0      128          *:22                       *:*
+LISTEN     0      128       [::]:22                    [::]:*
+LISTEN     0      128       [::]:9090                  [::]:*
+```
+
+
+
+#### 访问prometheus
+
+##### 内建UI界面
+
+直接访问prometheus的9090端口，可以进入到prometheus内建的UI界面
+
+例如我这里直接访问：http://prometheus-server1.shinefire.com:9090
+
+![image-20210804090753002](pictures/image-20210804090753002.png)
+
+
+
+##### metrics指标数据
+
+浏览器访问测试，通过访问prometheus的metrics，例如我这里的：http://prometheus-server1.shinefire.com:9090/metrics，可以看到prometheus这台服务器中自身的大量指标数据
+
+![image-20210804090353292](pictures/image-20210804090353292.png)
+
+
+
+### node_exporter
+
+#### 安装运行node_exporter
+
+node_exporter安装包的下载方式也跟prometheus一样，在官网的下载站点选择相应的包进行下载即可。
+
+解压与运行node_exporter如下：
+
+```bash
+[root@prometheus-server1 prometheus-softs]# ls
+node_exporter-1.2.0.linux-amd64.tar.gz  prometheus-2.28.1.linux-amd64.tar.gz
+[root@prometheus-server1 prometheus-softs]# tar xzf node_exporter-1.2.0.linux-amd64.tar.gz -C /usr/local/
+[root@prometheus-server1 prometheus-softs]# cd /usr/local/
+[root@prometheus-server1 local]# ls
+bin  etc  games  include  lib  lib64  libexec  node_exporter-1.2.0.linux-amd64  prometheus  prometheus-2.28.1.linux-amd64  sbin  share  src
+[root@prometheus-server1 local]# ln -snf node_exporter-1.2.0.linux-amd64/ node_exporter  ## 加nf参数主要是统一一下，如果以后需要做软链接更新的话，也直接用这参数即可
+[root@prometheus-server1 local]# cd node_exporter
+[root@prometheus-server1 node_exporter]# ls
+LICENSE  node_exporter  NOTICE
+[root@prometheus-server1 node_exporter]# ./node_exporter
+level=info ts=2021-08-04T01:57:11.570Z caller=node_exporter.go:182 msg="Starting node_exporter" version="(version=1.2.0, branch=HEAD, revision=12968948aec1e2b216a2ecefc45cf3a50671aecb)"
+level=info ts=2021-08-04T01:57:11.570Z caller=node_exporter.go:183 msg="Build context" build_context="(go=go1.16.6, user=root@6b17174de526, date=20210715-16:35:54)"
+level=warn ts=2021-08-04T01:57:11.570Z caller=node_exporter.go:185 msg="Node Exporter is running as root user. This exporter is designed to run as unpriviledged user, root is not required."
+level=info ts=2021-08-04T01:57:11.571Z caller=filesystem_common.go:110 collector=filesystem msg="Parsed flag --collector.filesystem.mount-points-exclude" flag=^/(dev|proc|sys|var/lib/docker/.+)($|/)
+level=info ts=2021-08-04T01:57:11.571Z caller=filesystem_common.go:112 collector=filesystem msg="Parsed flag --collector.filesystem.fs-types-exclude" flag=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
+level=info ts=2021-08-04T01:57:11.571Z caller=node_exporter.go:108 msg="Enabled collectors"
+level=info ts=2021-08-04T01:57:11.571Z caller=node_exporter.go:115 collector=arp
+level=info ts=2021-08-04T01:57:11.571Z caller=node_exporter.go:115 collector=bcache
+level=info ts=2021-08-04T01:57:11.571Z caller=node_exporter.go:115 collector=bonding
+level=info ts=2021-08-04T01:57:11.571Z caller=node_exporter.go:115 collector=btrfs
+level=info ts=2021-08-04T01:57:11.571Z caller=node_exporter.go:115 collector=conntrack
+level=info ts=2021-08-04T01:57:11.571Z caller=node_exporter.go:115 collector=cpu
+level=info ts=2021-08-04T01:57:11.571Z caller=node_exporter.go:115 collector=cpufreq
+level=info ts=2021-08-04T01:57:11.571Z caller=node_exporter.go:115 collector=diskstats
+level=info ts=2021-08-04T01:57:11.571Z caller=node_exporter.go:115 collector=edac
+level=info ts=2021-08-04T01:57:11.571Z caller=node_exporter.go:115 collector=entropy
+level=info ts=2021-08-04T01:57:11.571Z caller=node_exporter.go:115 collector=fibrechannel
+level=info ts=2021-08-04T01:57:11.571Z caller=node_exporter.go:115 collector=filefd
+...
+```
+
+node_exporter监听端口为9100：
+
+```bash
+[root@prometheus-server1 ~]# ss -tnl
+State      Recv-Q Send-Q Local Address:Port               Peer Address:Port     
+LISTEN     0      128          *:22                       *:*
+LISTEN     0      128       [::]:9100                  [::]:*
+LISTEN     0      128       [::]:22                    [::]:*
+LISTEN     0      128       [::]:9090                  [::]:*
+```
+
+#### 查看metrics
+
+浏览器访问查看：
+
+![image-20210804102532583](pictures/image-20210804102532583.png)
+
+
+
+
+
+
+
+
+
+## Administration Guide
+
+### Exporter 对应端口整理
+
+常用的几个export对应的端口整理：
+
+| Exporter Name | Port |
+| ------------- | ---- |
+| prometheus    | 9090 |
+| node_exporter | 9100 |
+|               |      |
+
+
+
+### Add Targets
+
+#### Static Configure 静态配置
+
+适合变动很小的主机环境，直接在配置文件`prometheus.yml`中写入相应的机器即可，例如：
+
+```
+...
+  ## all nodes
+  - job_name: 'node'
+    static_configs:
+    - targets:
+      - 192.168.31.62:9100
+      - 192.168.31.63:9100
+      - 192.168.31.64:9100
+      - 192.168.31.65:9100
+```
+
+建议：即使环境变化较小的环境中，也不建议自己来进行手动配置，推荐还是使用动态发现的机制来进行管理。
+
+
+
+#### 服务发现
+
+适用于环境变化较快较大的环境，例如容器环境，随时可能会创建/销毁新的容器实例出来。
+
+动态发现机制主要有以下方式：
+
+- 基于文件的服务发现
+- 基于DNS的服务发现
+- 基于API的服务发现：Kubernetes、Consul、Azure、……
+
+
+
+##### 基于文件的服务发现
+
+
+
+
+
+##### 基于DNS的服务发现
+
+
+
+
+
+##### 基于API的服务发现
+
+
+
+
+
+### Consul
+
+
+
+
+
+
+
+
+
+## User Guide
+
+
+
+
+
+## PromQL
+
+
+
+### 聚合函数
+
+Prometheus中内置了11个聚合函数
+
+- sum( )：对样本值求和；
+- avg ( ) ：对样本值求平均值，这是进行指标数据分析的标准方法；
+- count ( ) ：对分组内的时间序列进行数量统计；
+- stddev ( ) ：对样本值求标准差，以帮助用户了解数据的波动大小（或称之为波动程度）；
+- stdvar ( ) ：对样本值求方差，它是求取标准差过程中的中间状态；
+- min ( ) ：求取样本值中的最小者；
+- max ( ) ：求取样本值中的最大者；
+- topk ( ) ：逆序返回分组内的样本值最大的前k个时间序列及其值；
+- bottomk ( ) ：顺序返回分组内的样本值最小的前k个时间序列及其值；
+- quantile ( ) ：分位数用于评估数据的分布状态，该函数会返回分组内指定的分位数的值，即数值落在小于等于指定的分位区间的比例；
+- count_values ( ) ：对分组内的时间序列的样本值进行数量统计；
+
+
+
+
+
+### 基于现有样本的未来趋势预测
+
+
+
+
+
+
+
+
+
+
+
+## Questions
+
+Q1：
+
+pushgateway说是适用于短生命周期的任务，自己产生指标数据的时候自己可以直接推送到pushgateway中，但是这样说起来，其实挺抽象的，有什么合适的例子或者说场景来介绍一下吗？
+
+A1：
+
+
+
+Q2：
+
+counter指标类型中的rate和irate对比，为什么说irate()是一个更加高灵敏度函数且更加适合短期时间范围内的变化速率分析。
+
+A2：
+
+
+
+Q3：
+
+向量，标量这些数学概念
+
+A3：
+
+
+
+
+
+Q4：
+
+基于文件的服务发现，一般用怎么样的整套方案比较合适呢？
+
+主要是在考虑，如果直接prometheus.yml在修改包含的文件中的指定过程中也可能会发生改变的，那这时候是不是必须要重启prometheus服务才可以呢？有不有更合适的方式来进行管理基于文件的自动发现呢
+
+A4：
+
+
+
+Q5：
+
+整个系统的数据存储是不是只与Prometheus Server的存储有关，跟grafana这些应该都没有任何关系吧？
+
+A5：
+
+
+
+Q6：
+
+rate()函数的原理，或者说它的计算方式
+
+A6：
+
+
+
+Q7：
+
+Prometheus的高可用架构如何实现
+
+A7：
+
+
+
+Q8：
+
+配置了AlertManager之后，告警消息dashboard是会在grafana中的地方显示吗？是否可以做到呢？
+
+还是说需要在AlertManager的界面去看才能看到所有的呢？
+
+A8：
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 待整理的信息
+
+在Prometheus的架构设计中，Prometheus Server并不直接服务监控特定的目标，其主要任务负责数据的收集，存储并且对外提供数据查询支持
+
+---
+
+Prometheus Server的联邦集群能力可以使其从其他的Prometheus Server实例中获取数据，因此在大规模监控的情况下，可以通过联邦集群以及功能分区的方式对Prometheus Server进行扩展。
+
+---
+
+由于Prometheus数据采集基于Pull模型进行设计，因此在网络环境的配置上必须要让Prometheus Server能够直接与Exporter进行通信。 当这种网络需求无法直接满足时，就可以利用PushGateway来进行中转。可以通过PushGateway将内部网络的监控数据主动Push到Gateway当中。而Prometheus Server则可以采用同样Pull的方式从PushGateway中获取到监控数据。
+
+---
 
 
 
