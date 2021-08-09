@@ -41,6 +41,7 @@ The system that runs the AWX service will need to satisfy the following requirem
 
 | items       | value                             |
 | ----------- | --------------------------------- |
+| AWX         | 13.0.0                            |
 | OS Version  | CentOS7.8                         |
 | FQDN        | pose-awx-app-5001.cn.wal-mart.com |
 | DNS 解析    | awx.cn.wal-mart.com               |

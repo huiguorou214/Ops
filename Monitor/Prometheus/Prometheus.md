@@ -16,7 +16,9 @@ E-mail: shine_fire@outlook.com
 
 ## Introduction
 
-### 什么是prometheus？
+### What is prometheus？什么是Prometheus
+
+
 
 官方原话：
 
@@ -25,6 +27,12 @@ E-mail: shine_fire@outlook.com
 Prometheus collects and stores its metrics as time series data, i.e. metrics information is stored with the timestamp at which it was recorded, alongside optional key-value pairs called labels.
 
 For more elaborate overviews of Prometheus, see the resources linked from the [media](https://prometheus.io/docs/introduction/media/) section.
+
+翻译：
+
+Prometheus是最初由SoundCloud公司开发的集监控与告警于一身的开源工具。从2012年开始，很多公司和组织开始使用Prometheus，并且还出现了很多活跃的开发者和用户社区。它现在是一个不依赖任何公司的独立维护的开源项目。需要强调和澄清的一点的是关于Prometheus的管理架构，它在2016年已经作为在kubernetes之后的第二个加入并托管在CNCF的项目。
+
+Prometheus以时间序列数据的方式收集并存储它的metrics，
 
 
 
@@ -38,11 +46,13 @@ Prometheus是一款时序（time series）数据库；但它的功能却并非�
 
 
 
+
+
+
+
 ### 传统的监控系统模型
 
 传统的监控系统模型，例如Nagios，Zabbix等，都是需要安装一个Agent在被监控设备中。
-
-
 
 
 
@@ -449,11 +459,11 @@ LISTEN     0      128       [::]:9090                  [::]:*
 
 常用的几个export对应的端口整理：
 
-| Exporter Name | Port |
-| ------------- | ---- |
-| prometheus    | 9090 |
-| node_exporter | 9100 |
-|               |      |
+| Exporter Name   | Port |
+| --------------- | ---- |
+| prometheus      | 9090 |
+| node_exporter   | 9100 |
+| mysqld_exporter | 9104 |
 
 
 
@@ -527,6 +537,8 @@ LISTEN     0      128       [::]:9090                  [::]:*
 
 ## PromQL
 
+PromQL是学习prometheus的重点，这个在这里只是简单的写一下，具体更深入与高级的PromQL用法，会单独拿出来在另外的章节写。
+
 
 
 ### 聚合函数
@@ -534,22 +546,54 @@ LISTEN     0      128       [::]:9090                  [::]:*
 Prometheus中内置了11个聚合函数
 
 - sum( )：对样本值求和；
-- avg ( ) ：对样本值求平均值，这是进行指标数据分析的标准方法；
-- count ( ) ：对分组内的时间序列进行数量统计；
-- stddev ( ) ：对样本值求标准差，以帮助用户了解数据的波动大小（或称之为波动程度）；
-- stdvar ( ) ：对样本值求方差，它是求取标准差过程中的中间状态；
-- min ( ) ：求取样本值中的最小者；
-- max ( ) ：求取样本值中的最大者；
-- topk ( ) ：逆序返回分组内的样本值最大的前k个时间序列及其值；
-- bottomk ( ) ：顺序返回分组内的样本值最小的前k个时间序列及其值；
-- quantile ( ) ：分位数用于评估数据的分布状态，该函数会返回分组内指定的分位数的值，即数值落在小于等于指定的分位区间的比例；
-- count_values ( ) ：对分组内的时间序列的样本值进行数量统计；
+- avg( ) ：对样本值求平均值，这是进行指标数据分析的标准方法；
+- count( ) ：对分组内的时间序列进行数量统计；
+- stddev( ) ：对样本值求标准差，以帮助用户了解数据的波动大小（或称之为波动程度）；
+- stdvar( ) ：对样本值求方差，它是求取标准差过程中的中间状态；
+- min( ) ：求取样本值中的最小者；
+- max( ) ：求取样本值中的最大者；
+- topk( ) ：逆序返回分组内的样本值最大的前k个时间序列及其值；
+- bottomk( ) ：顺序返回分组内的样本值最小的前k个时间序列及其值；
+- quantile( ) ：分位数用于评估数据的分布状态，该函数会返回分组内指定的分位数的值，即数值落在小于等于指定的分位区间的比例；
+- count_values( ) ：对分组内的时间序列的样本值进行数量统计；
 
 
 
 
 
 ### 基于现有样本的未来趋势预测
+
+
+
+
+
+## Exporter
+
+### node_exporter
+
+
+
+### mysqld_exporter
+
+mysql的exporter主要监控的内容：
+
+- 数据吞吐量，主要是对数据的增、删、改、查
+  - 服务器执行查询语句的总次数
+  - 服务器写操作的总次数
+  - MySQL实例insert语句的执行次数总量
+  - ...
+- 连接情况，在MySQL中通过全局设置max_connections限制了当前服务器允许的最大客户端连接数量。一旦可用连接数被用尽，新的客户端连接都会被直接拒绝。 因此当监控MySQL运行状态时，需要时刻关注MySQL服务器的连接情况
+  - 类似可以做成当前连接数与总连接数相比的使用情况。
+  - 查询当前MySQL实例连接拒绝数
+- 监控缓存池使用情况，MySQL默认的存储引擎InnoDB使用了一片称为缓冲池的内存区域，用于缓存数据表以及索引的数据。 当缓冲池的资源使用超出限制后，可能会导致数据库性能的下降，同时很多查询命令会直接在磁盘中执行，导致磁盘I/O不断攀升
+  - 缓冲池中的内存页的总页数
+  - 缓冲池中的内存页的使用页数
+  - 当缓冲池无法满足时，MySQL只能从磁盘中读取数据。Innodb_buffer_pool_reads即记录了从磁盘读取数据的请求数量
+- 性能查询
+  - long_query_time超时时间
+  - Slow_queries增长率情况等
+
+
 
 
 
@@ -621,6 +665,14 @@ Prometheus的高可用架构如何实现
 
 A7：
 
+参考官方：https://prometheus.io/docs/introduction/faq/#can-prometheus-be-made-highly-available
+
+Yes, run identical Prometheus servers on two or more separate machines. Identical alerts will be deduplicated by the [Alertmanager](https://github.com/prometheus/alertmanager).
+
+For [high availability of the Alertmanager](https://github.com/prometheus/alertmanager#high-availability), you can run multiple instances in a [Mesh cluster](https://github.com/weaveworks/mesh) and configure the Prometheus servers to send notifications to each of them.
+
+至于prometheus联邦则可以参考：[Scaling and Federating Prometheus](https://www.robustperception.io/scaling-and-federating-prometheus/)
+
 
 
 Q8：
@@ -633,11 +685,47 @@ A8：
 
 
 
+Q9：
+
+关于这个匹配的描述如下：
+
+```
+一对多/多对一匹配
+“一”侧的每个元素，可与“多”侧的多个元素进行匹配；
+必须使用group_left或group_right明确指定哪侧为“多”侧；
+```
+
+那么：如果是多对多呢？还要不要用group或者怎么用呢？或者是根本没有这种用法？
+
+A9：
+
+
+
+Q10：
+
+在想prometheus能不能做成那种类似MySQL读写分离的架构，架构中统一适用一个远程的存储，部分Prometheus专门用来收集存储数据，当使用查询的时候，则另外有一台专门用来查询的服务器来提供查询服务。
+
+包括grafana在读取数据展示的是不是，也可以另外走通道，不知道可否做成这样？
+
+A10：
 
 
 
 
 
+
+
+
+
+
+
+## Ohters
+
+### What is the plural of Prometheus?
+
+After [extensive research](https://youtu.be/B_CDeYrqxjQ), it has been determined that the correct plural of 'Prometheus' is 'Prometheis'.
+
+有意思，没想到官网的F&A还提到了这个Prometheus的复数形式怎么表达，但是这是个非正式的单词，没有音标我也不会读呀。
 
 
 
