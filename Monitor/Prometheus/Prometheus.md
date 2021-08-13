@@ -525,6 +525,12 @@ LISTEN     0      128       [::]:9090                  [::]:*
 
 
 
+### Alert
+
+
+
+
+
 
 
 
@@ -711,7 +717,11 @@ A10：
 
 
 
+Q11：
 
+关于这个prometheus的数据抓取频率，它跟这个node_exporter有关吗？还是说prometheus server这边指定多少就多少，但是我理解是，node_exporter数据生产者应该是有个生产数据的频率才对，这个跟prometheus server的抓取速率应该有区别才对吧。
+
+A11：
 
 
 
@@ -759,5 +769,5 @@ Prometheus Server的联邦集群能力可以使其从其他的Prometheus Server�
 
 - [Prometheus Docs](https://prometheus.io/docs/introduction/overview/)
 - [prometheus-book](https://yunlzheng.gitbook.io/prometheus-book/)
-- 
+- [Prometheus专栏](https://cloud.tencent.com/developer/column/87999)
 
