@@ -195,6 +195,10 @@ Prometheus本身在狭义上来说主要是一个TSDB，负责时序型指标数
 
 
 
+
+
+
+
 ### Prometheus数据模型
 
 #### Prometheus数据采集的原理
@@ -209,7 +213,13 @@ Prometheus是时间序列数据：按照时间顺序记录系统、设备状态�
 
 
 
+### Metric Name
 
+Prometheus的metric命名，一般是用来表达它的作用。
+
+metric name可以包含ASCII字母和数字，以及下划线和冒号。
+
+即一定能被这个正则匹配到：`[a-zA-Z_:][a-zA-Z0-9_:]*`
 
 
 
@@ -228,13 +238,33 @@ PromQL有四个指标类型，它们主要由Prometheus的客户端库使用
 
 
 
-
-
 ### Prometheus架构
 
 架构图：
 
 ![image-20210804080003100](pictures/image-20210804080003100.png)
+
+
+
+
+
+## Architecture Design
+
+### 容量规划
+
+内存
+
+内存的大小可以通过查看`process_resident_memory_bytes`这个指标。
+
+
+
+磁盘
+
+对于每秒10万个样本的示例，我们知道按时间序列收集的每个样本在磁盘上占用大约1到2个字节。假设每个样本有2个字节，那么保留15天的时间序列意味着需要大约259 GB的磁盘。
+
+
+
+
 
 
 
@@ -323,6 +353,16 @@ bin  etc  games  include  lib  lib64  libexec  prometheus  prometheus-2.28.1.lin
 [root@prometheus-server1 local]# cd prometheus
 [root@prometheus-server1 prometheus]# ls
 console_libraries  consoles  LICENSE  NOTICE  prometheus  prometheus.yml  promtool
+```
+
+
+
+#### 检查Prometheus配置文件语法
+
+```bash
+[root@prometheus-server1 prometheus]# ./promtool check config prometheus.yml
+Checking prometheus.yml
+  SUCCESS: 0 rule files found
 ```
 
 
@@ -462,8 +502,15 @@ LISTEN     0      128       [::]:9090                  [::]:*
 | Exporter Name   | Port |
 | --------------- | ---- |
 | prometheus      | 9090 |
+| AlertManager    | 9093 |
 | node_exporter   | 9100 |
 | mysqld_exporter | 9104 |
+
+
+
+
+
+
 
 
 
@@ -525,7 +572,17 @@ LISTEN     0      128       [::]:9090                  [::]:*
 
 
 
-### Alert
+### AlertManager
+
+
+
+#### 分组
+
+
+
+#### 抑制
+
+
 
 
 
@@ -579,6 +636,22 @@ Prometheus中内置了11个聚合函数
 
 
 
+
+
+
+
+
+
+### textfile收集器
+
+
+
+
+
+
+
+
+
 ### mysqld_exporter
 
 mysql的exporter主要监控的内容：
@@ -611,21 +684,21 @@ mysql的exporter主要监控的内容：
 
 
 
-## Questions
+## Q&A
 
 Q1：
 
 pushgateway说是适用于短生命周期的任务，自己产生指标数据的时候自己可以直接推送到pushgateway中，但是这样说起来，其实挺抽象的，有什么合适的例子或者说场景来介绍一下吗？
 
-A1：
+A：
 
 
 
-Q2：
+**Q2：**
 
-counter指标类型中的rate和irate对比，为什么说irate()是一个更加高灵敏度函数且更加适合短期时间范围内的变化速率分析。
+counter指标类型中的rate和irate对比，为什么说irate()是一个更加高灵敏度函数且更加适合短期时间范围内的变化速率分析？深入理解一下两个函数的原理！
 
-A2：
+A：
 
 
 
@@ -633,7 +706,7 @@ Q3：
 
 向量，标量这些数学概念
 
-A3：
+A：
 
 
 
@@ -645,7 +718,7 @@ Q4：
 
 主要是在考虑，如果直接prometheus.yml在修改包含的文件中的指定过程中也可能会发生改变的，那这时候是不是必须要重启prometheus服务才可以呢？有不有更合适的方式来进行管理基于文件的自动发现呢
 
-A4：
+A：
 
 
 
@@ -653,7 +726,7 @@ Q5：
 
 整个系统的数据存储是不是只与Prometheus Server的存储有关，跟grafana这些应该都没有任何关系吧？
 
-A5：
+A：
 
 
 
@@ -661,7 +734,7 @@ Q6：
 
 rate()函数的原理，或者说它的计算方式
 
-A6：
+A：
 
 
 
@@ -669,7 +742,7 @@ Q7：
 
 Prometheus的高可用架构如何实现
 
-A7：
+A：
 
 参考官方：https://prometheus.io/docs/introduction/faq/#can-prometheus-be-made-highly-available
 
@@ -687,7 +760,7 @@ Q8：
 
 还是说需要在AlertManager的界面去看才能看到所有的呢？
 
-A8：
+A：
 
 
 
@@ -703,7 +776,7 @@ Q9：
 
 那么：如果是多对多呢？还要不要用group或者怎么用呢？或者是根本没有这种用法？
 
-A9：
+A：
 
 
 
@@ -713,15 +786,149 @@ Q10：
 
 包括grafana在读取数据展示的是不是，也可以另外走通道，不知道可否做成这样？
 
-A10：
+A：
 
 
 
 Q11：
 
-关于这个prometheus的数据抓取频率，它跟这个node_exporter有关吗？还是说prometheus server这边指定多少就多少，但是我理解是，node_exporter数据生产者应该是有个生产数据的频率才对，这个跟prometheus server的抓取速率应该有区别才对吧。
+关于这个prometheus的数据抓取频率和exporter的关系，exporter不是负责采集暴露metrics的吗？那exporter自身是不是也有采集频率呢？还是说它是根据prometheus设定的抓取频率来调整自身的采集频率的呢？
 
-A11：
+我想的是exporter作为数据生产者应该有个生产数据的频率才对，然后prometheus根据自己设置的抓取频率去抓取，但是实际上好像不是和我想的这样的。
+
+A：
+
+一般来说，采集的时候，同步抓取，当然也不是固定的，也可以异步抓取。最终由exporter决定。
+
+
+
+Q12：
+
+需求：VMware环境中，机器会出现IP变动的问题，能不能用Prometheus监控到IP变了就告警？
+
+我想到就是先用Ansible用vm_guest模块来调用VMware的接口，查看并保存指定vcenter整个环境里面的IP和Mac地址对应关系，然后定期拉取一遍比对一下，如果不一致的就告警。
+
+不知道这样的思路能不能实现，或者有不有什么其他的方案。
+
+A：
+
+
+
+Q13：
+
+prometheus config file 里面这个 evaluation_interval 是什么意思呢？有点不太懂，直译是评估间隔，但是评估什么呢？
+
+书上是说：参数evaluation_interval用来指定Prometheus评估规则的频率。目前主要有两种规则：记录规则 （recording rule）和警报规则（alerting rule）
+
+但是也还是不太明白评估的意思，难道是说修改了规则配置文件的读取频率刷新间隔吗？
+
+A：
+
+prometheus会根据全局global设定的evaluation_interval参数进行扫描加载，规则改动后会自动加载。
+
+相当于是用来重新读取那些规则配置文件用的，如果更改了规则，会间隔性的扫描规则配置以及更新规则。
+
+
+
+Q14：
+
+在书上看到过滤收集器那里提到了关于使用node_exporter中可以加params: collect[]: 里面那些CPU、meminfo的选项，这个有什么办法看一个exporter提供了哪些collect选项吗？
+
+![image-20210816150225840](pictures/image-20210816150225840.png)
+
+A：
+
+
+
+Q15：
+
+Prometheus有两个阶段的重新打标机会，那这两个阶段，具体是怎么在应用中使用呢？有不有合适的示例来帮助理解？
+
+A：
+
+第一个阶段是对来自服务发现的目标进行重新标记，这对于将来自服务发现的元数据标签中的信息应用于指标上的标签来说非常有用。这是在作业内的 relabel_configs块中完成的。
+
+第二个阶段是在抓取之后且指标被保存于存储系统之前。这样，我们就可以确定哪些指标需要保存、哪些需要丢弃以及这些指标的样式。这是在我们作业内的metric_relabel_configs块中完成的。
+
+记住这两个阶段的最简单方法是：在抓取之前使用relabel_configs，在抓取之后使用 metric_relabel_configs。
+
+
+
+Q16：
+
+书中4.1.1章节中提到了systemd收集器，通过这个收集器，可以在后面看到系统中各种服务的运行状态，这个是怎么使用呢？
+
+A：
+
+
+
+Q17：
+
+关于rule中的一个record的写法问题：
+
+```
+rules:
+  - record: instance:node_cpu:avg_rate5m
+```
+
+为什么书上record的命名是这样的格式，用逗号分割的，只是作者自己的使用习惯吗？因为我看prometheus自带的那些metric名字都是下划线做分隔符的。
+
+虽然这个不是metric，但是我可不可以把它也理解成一个metric呢？感觉使用的时候都差不多，例如查询的时候。
+
+A：
+
+
+
+Q18：
+
+如果想指定node_exporter所带来了哪些metrics，我需要怎么去查看呢？
+
+A：
+
+
+
+Q19：
+
+Prometheus的警报能不能和Zabbix一样，对于一些不想要它继续告警的警报做一个取消操作。
+
+A：
+
+
+
+Q20：
+
+关于下面这段代码的一些疑问：
+
+```yaml
+  - alert: DiskWillFillIn4Hours
+    expr: predict_linear(node_filesystem_free_bytes{mountpoint="/"}[1h], 4*3600) < 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: Device {{$labels.device}} on node {{$labels.instance}} is running
+              full within the next 4 hours (mounted at {{ $labels.mountpoint }})
+```
+
+里面的 {{$labels.device}} 这个是怎么来的呢？Prometheus里面有内置一些相关的东西吗？
+
+A：
+
+变量$labels和$value分别是底层Go变量.Labels和.Value的名称，具体的应该要研究一下Go语言才行了。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -736,6 +943,18 @@ A11：
 After [extensive research](https://youtu.be/B_CDeYrqxjQ), it has been determined that the correct plural of 'Prometheus' is 'Prometheis'.
 
 有意思，没想到官网的F&A还提到了这个Prometheus的复数形式怎么表达，但是这是个非正式的单词，没有音标我也不会读呀。
+
+
+
+### 85％的查询是针对26小时内的数据
+
+Prometheus专注于现在正在发生的事情，而不是追踪数周或数月前的数据。它基于这样一个前 提，即大多数监控查询和警报都是从最近的（通常是一天内的）数据中生成的。
+
+Facebook在其内部时 间序列数据库Gorilla的论文中验证了这一观点。Facebook发现85％的查询是针对26小时内的数据。 
+
+Prometheus假定你尝试修复的问题可能是最近出现的，因此最有价值的是最近时间的数据，这反映在强大的查询语言和通常有限的监控数据保留期上。
+
+
 
 
 
@@ -770,4 +989,6 @@ Prometheus Server的联邦集群能力可以使其从其他的Prometheus Server�
 - [Prometheus Docs](https://prometheus.io/docs/introduction/overview/)
 - [prometheus-book](https://yunlzheng.gitbook.io/prometheus-book/)
 - [Prometheus专栏](https://cloud.tencent.com/developer/column/87999)
+- [高可用 Prometheus：Thanos 实践](http://www.xuyasong.com/?p=1925)
+- 
 

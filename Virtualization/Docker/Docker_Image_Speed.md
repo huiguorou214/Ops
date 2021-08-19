@@ -23,3 +23,4 @@
 ]# cat /etc/docker/daemon.json
 {"registry-mirrors": ["http://f1361db2.m.daocloud.io"]}
 ```
+

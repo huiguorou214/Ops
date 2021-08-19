@@ -20,11 +20,21 @@ E-mail:shine_fire@outlook.com
 
 ## 启用kdump
 
+以RHEL7为例演示如何启用kdump服务来在系统崩溃时收集vmcore
+
 安装工具包
 
 
 
+
+
+
+
+
+
 ## 通过kdump排错
+
+
 
 ## 参考文献
 
