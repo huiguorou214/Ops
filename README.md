@@ -16,6 +16,3 @@
 
 2021年会努力完善很多方面的笔记，谢谢支持！
 
-个人技能与学习方向：
-
-![My_Skills](README.assets/My_Skills.png)
