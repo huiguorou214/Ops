@@ -991,5 +991,5 @@ Prometheus Server的联邦集群能力可以使其从其他的Prometheus Server�
 - [Prometheus 中文文档](https://www.prometheus.wang/)
 - [Prometheus专栏](https://cloud.tencent.com/developer/column/87999)
 - [高可用 Prometheus：Thanos 实践](http://www.xuyasong.com/?p=1925)
-- 
+- [Thanos：开源的大规模Prometheus集群解决方案](http://dockone.io/article/6019)
 
