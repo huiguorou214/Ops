@@ -76,9 +76,10 @@ HAProxy的主要目的是为了在安装好crc之后，在win中直接通过浏�
    会自动做一些运行前的配置，交互式直接yes确认就行了，上面的步骤我用root用户准备好环境之后，这里开始改用apt用户来进行配置了
 
    ```bash
+   # su - apt
    $ crc setup
    ```
-
+   
 5. Starting the virtual machine
 
    运行启动命令后，需要交互式的输入你在红帽的`pull secret`，因为虚拟机会自动联网在官方去下载一些启动openshift需要的资源，然后等个十来分钟即可。
@@ -120,7 +121,7 @@ HAProxy的主要目的是为了在安装好crc之后，在win中直接通过浏�
    
    Log in as administrator:
      Username: kubeadmin
-     Password: 4cTvq-uC5yR-Z7cFG-6uwc2
+     Password: rNBQC-oK3yx-ShpE3-rSetg
    
    Log in as user:
      Username: developer
@@ -186,9 +187,21 @@ make configuration changes via `machineconfig` objects:
 
 
 
-## 如何保存crc数据
+
+
+## crc管理
+
+
+
+
+
+
+
+## Q&A
 
 Q：
+
+如何保存crc数据
 
 crc理论上是个一次性使用的虚拟机，使用`crc delete`命令删掉kvm虚拟机之后，数据就伴随机器一起被删掉了，那么官方有不有提供什么想要长期使用的解决方案呢？
 
