@@ -43,6 +43,13 @@
 
 略
 
+#### 关闭swap
+
+```
+swapoff -a
+sed -ri 's/.*swap.*/#&/' /etc/fstab    # 永久 
+```
+
 #### 允许 iptables 检查桥接流量
 
 确保 `br_netfilter` 模块被加载。这一操作可以通过运行 `lsmod | grep br_netfilter` 来完成。若要显式加载该模块，可执行 `sudo modprobe br_netfilter`。
@@ -64,7 +71,7 @@ lsmod | grep br_netfilter
 sysctl -p
 ```
 
-### 配置yum源
+#### 配置yum源
 
 删除系统默认的repofile，配置国内阿里云或者其他的源
 
@@ -76,11 +83,41 @@ wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
 
 
 
-### Install kubectl
+### Docker-CE安装
 
-#### yum安装kubectl
+安装Docker
 
-建议直接用yum安装就行了，都用kubeadm来省事了就多省点
+```bash
+# step 1: 安装必要的一些系统工具
+yum install -y yum-utils device-mapper-persistent-data lvm2
+# Step 2: 添加软件源信息
+yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+# Step 3: 更新并安装Docker-CE
+yum makecache fast
+yum -y install docker-ce
+# Step 4: 开启Docker服务
+systemctl enable docker --now
+```
+
+配置Docker加速
+
+```bash
+mkdir /etc/docker
+vi /etc/docker/daemon.json 
+{
+"registry-mirrors": ["https://dlbpv56y.mirror.aliyuncs.com"]
+}
+```
+
+> 这个可以直接用，也可以自己去阿里云弄个自己的
+
+
+
+### 安装 kubeadm、kubelet 和 kubectl
+
+#### yum安装
+
+建议直接用yum安装就行了，都用kubeadm部署来省事了就多省点
 
 配置yum repo
 
@@ -110,7 +147,7 @@ systemctl enable kubelet && systemctl start kubelet
 
 
 
-#### curl方式安装
+#### curl方式安装（目前只有安装kubectl的，其他的以后有想法再考虑补充）
 
 1. 用以下命令下载最新发行版：
 
@@ -174,37 +211,6 @@ systemctl enable kubelet && systemctl start kubelet
 
 
 
-### Docker-CE安装
-
-安装Docker
-
-```bash
-# step 1: 安装必要的一些系统工具
-yum install -y yum-utils device-mapper-persistent-data lvm2
-# Step 2: 添加软件源信息
-yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
-# Step 3: 更新并安装Docker-CE
-yum makecache fast
-yum -y install docker-ce
-# Step 4: 开启Docker服务
-systemctl enable docker --now
-```
-
-配置Docker加速
-
-```bash
-mkdir /etc/docker
-vi /etc/docker/daemon.json 
-{
-"registry-mirrors": ["https://dlbpv56y.mirror.aliyuncs.com"]
-}
-```
-
-> 这个可以直接用，也可以自己去阿里云弄个自己的
->
-
-
-
 
 
 
@@ -264,5 +270,5 @@ A：
 ## References
 
 - [etcd集群部署](https://www.cnblogs.com/breezey/p/8836008.html)
-- 
+- [使用kubeadm搭建高可用k8s v1.16.3集群](https://www.cnblogs.com/ssgeek/p/11942062.html)
 
