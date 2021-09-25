@@ -1,4 +1,4 @@
-# Deployment UPI
+# Deployment UPI  (暂未验证成功)
 
 
 
@@ -1497,3 +1497,5 @@ pollimmediate error waiting for readinessindicatorfile timed out waiting for the
 - Openshift 4.4 静态 IP 离线安装系列（一）：准备离线资源 https://cloud.tencent.com/developer/article/1638330
 - 万字长文，说透了 Openshift4 的安装过程！https://cloud.tencent.com/developer/article/1640415
 - openssl生成SSL证书的流程 https://blog.csdn.net/liuchunming033/article/details/48470575
+- [openshift 4.5.9 离线安装](https://zhangguanzhang.github.io/2020/09/18/ocp-4.5-install/)
+

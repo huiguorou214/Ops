@@ -1,4 +1,4 @@
-# Deployment
+# Deployment (暂未验证成功)
 
 > 本章主要介绍如何对OpenShift4.6.1环境进行快速部署，能够简单上手使用的记录，适用于个人或者公司中对OpenShift容器平台的学习与研究
 

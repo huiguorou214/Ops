@@ -46,5 +46,7 @@
 
 
 
+## References
 
+- [k8s配置文件模板](https://www.cnblogs.com/g2thend/p/11837649.html)
 
