@@ -4,16 +4,6 @@
 
 
 
-## Author
-
-```
-Name: Shinefire
-Blog: https://github.com/shine-fire/Ops_Notes
-E-mail: shine_fire@outlook.com
-```
-
-
-
 ## Introduction
 
 ### online vs. offline
@@ -248,7 +238,7 @@ Restart Docker Engine
 证书创建完毕后，将CA证书放到系统的指定路径下，做证书信任
 
 ```bash
-~]# cp harbor-server3.shinefire.com.crt /etc/pki/ca-trust/source/anchors/harbor-server3.shinefire.com.crt
+~]# cp myrootCA.crt /etc/pki/ca-trust/source/anchors/harbor-server3.shinefire.com.crt
 ~]# update-ca-trust
 ```
 

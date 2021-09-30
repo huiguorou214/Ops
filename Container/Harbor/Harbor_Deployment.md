@@ -248,7 +248,7 @@ Restart Docker Engine
 证书创建完毕后，将CA证书放到系统的指定路径下，做证书信任
 
 ```bash
-~]# cp harbor-server2.shinefire.com.crt /etc/pki/ca-trust/source/anchors/harbor-server2.shinefire.com.crt
+~]# cp myrootCA.crt /etc/pki/ca-trust/source/anchors/harbor-server2.shinefire.com.crt
 ~]# update-ca-trust
 ```
 
