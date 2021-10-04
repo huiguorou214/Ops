@@ -245,4 +245,5 @@ python
 ## 参考博客
 
 - kickstart配置文件详解和system-config-kickstart https://blog.csdn.net/taiyang1987912/article/details/42176709
-- [KICKSTART INSTALLATIONS](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/installation_guide/chap-kickstart-installations)
+- 红帽官网的 [KICKSTART 语法参考](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/installation_guide/chap-kickstart-installations)
+
