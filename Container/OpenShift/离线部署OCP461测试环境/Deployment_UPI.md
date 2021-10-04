@@ -96,9 +96,9 @@ Each cluster machine must meet the following **minimum requirements**:
 
 单独准备一台节点用来执行安装任务和离线资源准备，这台节点最好具备**魔法上网**的能力，以便可以同时访问内外网。我们称这台节点为**基础节点**。
 
-需要部署一个私有镜像仓库，以供 OCP 安装和运行时使用，**要求支持 version 2 schema 2 (manifest list)**，我这里选择的是 `Harbor 2.0`。
+需要部署一个私有镜像仓库，以供 OCP 安装和运行时使用，**要求支持 version 2 schema 2 (manifest list)**，我这里选择的是 `Harbor 2.3.2`。
 
-> 很多人误以为必须联系 Red Hat 销售，签单之后才能使用 OCP4，其实不然，注册一个**开发者账号[1]**后就可以获得 `quay.io` 和 `registry.redhat.io` 的拉取密钥了。
+> 很多人误以为必须联系 Red Hat 销售，签单之后才能使用 OCP4，其实不然，注册一个**开发者账号**后就可以获得 `quay.io` 和 `registry.redhat.io` 的拉取密钥了。
 
 
 
@@ -106,9 +106,9 @@ Each cluster machine must meet the following **minimum requirements**:
 
 #### 获取openshift client
 
-目前使用的 OCP 版本是 4.6.6，可以从这里下载客户端：
+目前选择使用的 OCP 版本是 4.8.12 stable版本，可以从这里下载客户端：
 
-- https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.6.6/
+- https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.8/
 
 ```bash
 ~]# wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.6.6/openshift-client-linux-4.6.6.tar.gz
