@@ -94,7 +94,7 @@ Harbor requires that the following ports be open on the target host.
 修改基础节点主机名：
 
 ```bash
-~]# hostnamectl set-hostname harbor-server3.shinefire.com
+~]# hostnamectl set-hostname harbor-server1.shinefire.com
 ```
 
 
@@ -106,7 +106,7 @@ Harbor requires that the following ports be open on the target host.
 ```bash
 yum install -y yum-utils
 yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
-yum makecache fast
+yum makecache
 yum -y install docker-ce
 systemctl enable docker --now
 ```
@@ -136,6 +136,13 @@ systemctl enable docker --now
 
 #### Generate a Certificate Authority Certificate
 
+创建一个临时目录用于保存创建证书过程中生成的文件
+
+```bash
+~]# mkdir /tmp/certs/
+~]# cd /tmp/certs/
+```
+
 生成CA证书私钥
 
 ```bash
@@ -146,7 +153,7 @@ systemctl enable docker --now
 
 ```bash
 ~]# openssl req -x509 -new -nodes -sha512 -days 3650 \
- -subj "/C=CN/ST=GD/L=GZ/O=example/OU=Personal/CN=harbor-server3.shinefire.com" \
+ -subj "/C=CN/ST=GD/L=GZ/O=example/OU=Personal/CN=harbor-server1.shinefire.com" \
  -key myrootCA.key \
  -out myrootCA.crt
 ```
@@ -158,16 +165,16 @@ systemctl enable docker --now
 生成私钥
 
 ```bash
-~]# openssl genrsa -out harbor-server3.shinefire.com.key 4096
+~]# openssl genrsa -out harbor-server1.shinefire.com.key 4096
 ```
 
 Generate a certificate signing request (CSR)，生成证书签名请求
 
 ```bash
 ~]# openssl req -sha512 -new \
- -subj "/C=CN/ST=GD/L=GZ/O=example/OU=Personal/CN=harbor-server3.shinefire.com" \
- -key harbor-server3.shinefire.com.key \
- -out harbor-server3.shinefire.com.csr
+ -subj "/C=CN/ST=GD/L=GZ/O=example/OU=Personal/CN=harbor-server1.shinefire.com" \
+ -key harbor-server1.shinefire.com.key \
+ -out harbor-server1.shinefire.com.csr
 ```
 
 Generate an x509 v3 extension file
@@ -181,56 +188,57 @@ extendedKeyUsage = serverAuth
 subjectAltName = @alt_names
 
 [alt_names]
-DNS.1=harbor-server3.shinefire.com
-DNS.2=harbor-server3
+DNS.1=harbor-server1.shinefire.com
+DNS.2=harbor-server1
 EOF
 ```
 
 Use the `v3.ext` file to generate a certificate for your Harbor host.
 
-Replace the `harbor-server3.shinefire.com` in the CRS and CRT file names with the Harbor host name.
+Replace the `harbor-server1.shinefire.com` in the CRS and CRT file names with the Harbor host name.
 
 ```bash
 ~]# openssl x509 -req -sha512 -days 3650 \
     -extfile v3.ext \
     -CA myrootCA.crt -CAkey myrootCA.key -CAcreateserial \
-    -in harbor-server3.shinefire.com.csr \
-    -out harbor-server3.shinefire.com.crt
+    -in harbor-server1.shinefire.com.csr \
+    -out harbor-server1.shinefire.com.crt
 ```
 
 #### Provide the Certificates to Harbor and Docker
 
-After generating the `ca.crt`, `harbor-server3.shinefire.com.crt`, and `harbor-server3.shinefire.com.key` files, you must provide them to Harbor and to Docker, and reconfigure Harbor to use them.
+After generating the `ca.crt`, `harbor-server1.shinefire.com.crt`, and `harbor-server1.shinefire.com.key` files, you must provide them to Harbor and to Docker, and reconfigure Harbor to use them.
 
 Copy the server certificate and key into the certficates folder
 
 ```bash
 ~]# mkdir -p /data/cert
-~]# cp harbor-server3.shinefire.com.crt /data/cert
-~]# cp harbor-server3.shinefire.com.key /data/cert
+~]# cp harbor-server1.shinefire.com.crt /data/cert
+~]# cp harbor-server1.shinefire.com.key /data/cert
 ```
 
-Convert `harbor-server3.shinefire.com.crt` to `harbor-server3.shinefire.com.cert`, for use by Docker.
+Convert `harbor-server1.shinefire.com.crt` to `harbor-server1.shinefire.com.cert`, for use by Docker.
 
 The Docker daemon interprets `.crt` files as CA certificates and `.cert` files as client certificates.
 
 ```bash
-~]# openssl x509 -inform PEM -in harbor-server3.shinefire.com.crt -out harbor-server3.shinefire.com.cert
+~]# openssl x509 -inform PEM -in harbor-server1.shinefire.com.crt -out harbor-server1.shinefire.com.cert
 ```
 
 Copy the server certificate, key and CA files into the Docker certificates folder on the Harbor host. You must create the appropriate folders first.
 
 ```bash
-~]# mkdir -p /etc/docker/certs.d/harbor-server3.shinefire.com/
-~]# cp harbor-server3.shinefire.com.cert /etc/docker/certs.d/harbor-server3.shinefire.com/
-~]# cp harbor-server3.shinefire.com.key /etc/docker/certs.d/harbor-server3.shinefire.com/
-~]# cp myrootCA.crt /etc/docker/certs.d/harbor-server3.shinefire.com/
+~]# mkdir -p /etc/docker/certs.d/harbor-server1.shinefire.com/
+~]# cp harbor-server1.shinefire.com.cert /etc/docker/certs.d/harbor-server1.shinefire.com/
+~]# cp harbor-server1.shinefire.com.key /etc/docker/certs.d/harbor-server1.shinefire.com/
+~]# cp myrootCA.crt /etc/docker/certs.d/harbor-server1.shinefire.com/
 ```
 
-Restart Docker Engine
+放在ca_download目录下
 
 ```bash
-~]# systemctl restart docker
+~]# mkdir /data/ca_download
+~]# cp myrootCA.crt /data/ca_download/
 ```
 
 #### trust the certificate
@@ -238,8 +246,14 @@ Restart Docker Engine
 证书创建完毕后，将CA证书放到系统的指定路径下，做证书信任
 
 ```bash
-~]# cp myrootCA.crt /etc/pki/ca-trust/source/anchors/harbor-server3.shinefire.com.crt
+~]# cp myrootCA.crt /etc/pki/ca-trust/source/anchors/myrootCA.crt
 ~]# update-ca-trust
+```
+
+#### Restart Docker Engine
+
+```bash
+~]# systemctl restart docker
 ```
 
 
@@ -273,8 +287,8 @@ Restart Docker Engine
 
 # The IP address or hostname to access admin UI and registry service.
 # DO NOT use localhost or 127.0.0.1, because Harbor needs to be accessed by external clients.
-hostname: harbor-server3.shinefire.com
-external_url: https://harbor-server3.shinefire.com
+hostname: harbor-server1.shinefire.com
+external_url: https://harbor-server1.shinefire.com
 
 # http related config
 http:
@@ -286,8 +300,8 @@ https:
   # https port for harbor, default is 443
   port: 443
   # The path of cert and key files for nginx
-  certificate: /etc/docker/certs.d/harbor-server3.shinefire.com/harbor-server3.shinefire.com.cert
-  private_key: /etc/docker/certs.d/harbor-server3.shinefire.com/harbor-server3.shinefire.com.key
+  certificate: /etc/docker/certs.d/harbor-server1.shinefire.com/harbor-server1.shinefire.com.cert
+  private_key: /etc/docker/certs.d/harbor-server1.shinefire.com/harbor-server1.shinefire.com.key
 
 ...(略)
 ```
@@ -325,34 +339,40 @@ trivy-adapter       /home/scanner/entrypoint.sh      Up (healthy)
 
 
 
-现在可以通过 `docker login` 命令来测试仓库的连通性，看到如下字样即表示安装成功（也可以通过浏览器访问 Web UI）：
+### 登录测试
+
+登录测试由另外的一台client机器来做
+
+将ca证书传给 client 机器后，在 client 中执行命令：
 
 ```bash
-~]# docker login harbor-server3.shinefire.com
-Username: admin
+~]# mv myrootCA.crt /etc/pki/ca-trust/source/anchors/
+~]# update-ca-trust
+```
+
+现在可以通过 `podman login` 命令来测试仓库的连通性，看到如下字样即表示登录成功
+
+```bash
+~]# podman login -u admin https://harbor-server1.shinefire.com
 Password:
-WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
-Configure a credential helper to remove this warning. See
-https://docs.docker.com/engine/reference/commandline/login/#credentials-store
-
-Login Succeeded
+Login Succeeded!
 ```
 
-
-
-推送测试，直接将当前的image推送一个到仓库中测试是否可以正常推送
+推送测试，直接将当前的 image 推送一个到仓库中测试是否可以正常推送
 
 ```bash
-~]# docker tag goharbor/nginx-photon:v2.3.2 harbor-server3.shinefire.com/library/goharbor/nginx-photon
-~]# docker push harbor-server3.shinefire.com/library/goharbor/nginx-photon
-Using default tag: latest
-The push refers to repository [harbor-server3.shinefire.com/library/goharbor/nginx-photon]
-7301dee185fe: Pushed
-f6e68d4c9b22: Pushed
-latest: digest: sha256:5cb29d9ca4ca27bad457e386a0d2c16d3cee8decc612bc04497166dae9803b91 size: 740
+~]# podman images
+REPOSITORY                       TAG     IMAGE ID      CREATED      SIZE
+localhost/goharbor/nginx-photon  v2.3.2  83bd32904c30  6 weeks ago  46 MB
+~]# podman tag localhost/goharbor/nginx-photon:v2.3.2 harbor-server1.shinefire.com/library/goharbor/nginx-photon
+~]# podman push harbor-server1.shinefire.com/library/goharbor/nginx-photon
+Getting image source signatures
+Copying blob f6e68d4c9b22 done
+Copying blob 7301dee185fe done
+Copying config 83bd32904c done
+Writing manifest to image destination
+Storing signatures
 ```
-
-
 
 
 
@@ -364,5 +384,9 @@ latest: digest: sha256:5cb29d9ca4ca27bad457e386a0d2c16d3cee8decc612bc04497166dae
 
 ## Doc Changelogs
 
+- 2021.10.05 增加了额外的机器来测试Harbor仓库登录，之前的登录测试是在Harbor自己的机器上测试的
+
 - 2021.09.25 初版
+
+  
 
