@@ -282,7 +282,7 @@ Copy the server certificate, key and CA files into the Docker certificates folde
 
 打开 `/opt/harbor/harbor.yml` 文件，修改 hostname 域名、https 证书等配置信息，具体如下：
 
-```tex
+```yaml
 # Configuration file of Harbor
 
 # The IP address or hostname to access admin UI and registry service.
@@ -313,7 +313,7 @@ https:
 接着执行下面的命令进行安装：
 
 ```bash
-[root@bastion harbor]# ./install.sh --with-notary --with-trivy --with-chartmuseum
+[root@harbor-server1 harbor]# ./install.sh --with-notary --with-trivy --with-chartmuseum
 ```
 
 检查安装完后的结果，刚开始的时候可能会是starting启动的状态，等待都成功healthy状态
@@ -353,7 +353,7 @@ trivy-adapter       /home/scanner/entrypoint.sh      Up (healthy)
 现在可以通过 `podman login` 命令来测试仓库的连通性，看到如下字样即表示登录成功
 
 ```bash
-~]# podman login -u admin https://harbor-server1.shinefire.com
+~]# podman login -u admin https://bastion.shinefire.com
 Password:
 Login Succeeded!
 ```
@@ -364,8 +364,8 @@ Login Succeeded!
 ~]# podman images
 REPOSITORY                       TAG     IMAGE ID      CREATED      SIZE
 localhost/goharbor/nginx-photon  v2.3.2  83bd32904c30  6 weeks ago  46 MB
-~]# podman tag localhost/goharbor/nginx-photon:v2.3.2 harbor-server1.shinefire.com/library/goharbor/nginx-photon
-~]# podman push harbor-server1.shinefire.com/library/goharbor/nginx-photon
+~]# podman tag localhost/goharbor/nginx-photon:v2.3.2 bastion.shinefire.com/library/goharbor/nginx-photon
+~]# podman push bastion.shinefire.com/library/goharbor/nginx-photon
 Getting image source signatures
 Copying blob f6e68d4c9b22 done
 Copying blob 7301dee185fe done
