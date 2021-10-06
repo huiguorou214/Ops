@@ -1,4 +1,6 @@
-# Deployment UPI  (暂未验证成功)
+# Deployment UPI  (未成功版本，仅供参考)
+
+> 本章为之前参考操作的一个记录，很多地方有坑，仅供参考，以及Troubleshooting部分可以参考一些排错操作。
 
 
 
@@ -1372,6 +1374,8 @@ error: one or more errors occurred while uploading images
 
 A4：
 
+这个问题应该是离线operatorhub的时候遇到的，即使把查出来的所有project都创建好，也一样会存在一些没有记录到的 project，只能按照报错把这些 project 再创建好才行。
+
 
 
 Q5：
@@ -1425,6 +1429,8 @@ A7：
 ![image-20210705032722622](Deployment_UPI.assets/image-20210705032722622.png)
 
 A8：
+
+
 
 
 
