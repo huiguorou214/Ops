@@ -153,7 +153,7 @@ systemctl enable docker --now
 
 ```bash
 ~]# openssl req -x509 -new -nodes -sha512 -days 3650 \
- -subj "/C=CN/ST=GD/L=GZ/O=example/OU=Personal/CN=harbor-server1.shinefire.com" \
+ -subj "/C=CN/ST=GD/L=GZ/O=example/OU=Personal/CN=*.shinefire.com" \
  -key myrootCA.key \
  -out myrootCA.crt
 ```
@@ -353,7 +353,7 @@ trivy-adapter       /home/scanner/entrypoint.sh      Up (healthy)
 现在可以通过 `podman login` 命令来测试仓库的连通性，看到如下字样即表示登录成功
 
 ```bash
-~]# podman login -u admin https://bastion.shinefire.com
+~]# podman login -u admin https://harbor-server1.shinefire.com
 Password:
 Login Succeeded!
 ```
@@ -365,7 +365,7 @@ Login Succeeded!
 REPOSITORY                       TAG     IMAGE ID      CREATED      SIZE
 localhost/goharbor/nginx-photon  v2.3.2  83bd32904c30  6 weeks ago  46 MB
 ~]# podman tag localhost/goharbor/nginx-photon:v2.3.2 bastion.shinefire.com/library/goharbor/nginx-photon
-~]# podman push bastion.shinefire.com/library/goharbor/nginx-photon
+~]# podman push harbor-server1.shinefire.com/library/goharbor/nginx-photon
 Getting image source signatures
 Copying blob f6e68d4c9b22 done
 Copying blob 7301dee185fe done
