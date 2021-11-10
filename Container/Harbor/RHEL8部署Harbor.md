@@ -94,7 +94,7 @@ Harbor requires that the following ports be open on the target host.
 修改基础节点主机名：
 
 ```bash
-~]# hostnamectl set-hostname harbor-server1.shinefire.com
+~]# hostnamectl set-hostname registry.ocp4.shinefire.com
 ```
 
 
@@ -153,7 +153,7 @@ systemctl enable docker --now
 
 ```bash
 ~]# openssl req -x509 -new -nodes -sha512 -days 3650 \
- -subj "/C=CN/ST=GD/L=GZ/O=example/OU=Personal/CN=*.shinefire.com" \
+ -subj "/C=CN/ST=GD/L=GZ/O=example/OU=Personal/CN=*.ocp4shinefire.com" \
  -key myrootCA.key \
  -out myrootCA.crt
 ```
@@ -165,16 +165,16 @@ systemctl enable docker --now
 生成私钥
 
 ```bash
-~]# openssl genrsa -out harbor-server1.shinefire.com.key 4096
+~]# openssl genrsa -out registry.ocp4.shinefire.com.key 4096
 ```
 
 Generate a certificate signing request (CSR)，生成证书签名请求
 
 ```bash
 ~]# openssl req -sha512 -new \
- -subj "/C=CN/ST=GD/L=GZ/O=example/OU=Personal/CN=harbor-server1.shinefire.com" \
- -key harbor-server1.shinefire.com.key \
- -out harbor-server1.shinefire.com.csr
+ -subj "/C=CN/ST=GD/L=GZ/O=example/OU=Personal/CN=registry.ocp4.shinefire.com" \
+ -key registry.ocp4.shinefire.com.key \
+ -out registry.ocp4.shinefire.com.csr
 ```
 
 Generate an x509 v3 extension file
@@ -188,50 +188,54 @@ extendedKeyUsage = serverAuth
 subjectAltName = @alt_names
 
 [alt_names]
-DNS.1=harbor-server1.shinefire.com
-DNS.2=harbor-server1
+DNS.1=registry.ocp4.shinefire.com
+DNS.2=registry
+DNS.3=harbor-server2.shinefire.com
+DNS.4=harbor-server2
+DNS.5=harbor-server.shinefire.com
+DNS.6=harbor-server
 EOF
 ```
 
 Use the `v3.ext` file to generate a certificate for your Harbor host.
 
-Replace the `harbor-server1.shinefire.com` in the CRS and CRT file names with the Harbor host name.
+Replace the `registry.ocp4.shinefire.com` in the CRS and CRT file names with the Harbor host name.
 
 ```bash
 ~]# openssl x509 -req -sha512 -days 3650 \
     -extfile v3.ext \
     -CA myrootCA.crt -CAkey myrootCA.key -CAcreateserial \
-    -in harbor-server1.shinefire.com.csr \
-    -out harbor-server1.shinefire.com.crt
+    -in registry.ocp4.shinefire.com.csr \
+    -out registry.ocp4.shinefire.com.crt
 ```
 
 #### Provide the Certificates to Harbor and Docker
 
-After generating the `ca.crt`, `harbor-server1.shinefire.com.crt`, and `harbor-server1.shinefire.com.key` files, you must provide them to Harbor and to Docker, and reconfigure Harbor to use them.
+After generating the `ca.crt`, `registry.ocp4.shinefire.com.crt`, and `registry.ocp4.shinefire.com.key` files, you must provide them to Harbor and to Docker, and reconfigure Harbor to use them.
 
 Copy the server certificate and key into the certficates folder
 
 ```bash
 ~]# mkdir -p /data/cert
-~]# cp harbor-server1.shinefire.com.crt /data/cert
-~]# cp harbor-server1.shinefire.com.key /data/cert
+~]# cp registry.ocp4.shinefire.com.crt /data/cert
+~]# cp registry.ocp4.shinefire.com.key /data/cert
 ```
 
-Convert `harbor-server1.shinefire.com.crt` to `harbor-server1.shinefire.com.cert`, for use by Docker.
+Convert `registry.ocp4.shinefire.com.crt` to `registry.ocp4.shinefire.com.cert`, for use by Docker.
 
 The Docker daemon interprets `.crt` files as CA certificates and `.cert` files as client certificates.
 
 ```bash
-~]# openssl x509 -inform PEM -in harbor-server1.shinefire.com.crt -out harbor-server1.shinefire.com.cert
+~]# openssl x509 -inform PEM -in registry.ocp4.shinefire.com.crt -out registry.ocp4.shinefire.com.cert
 ```
 
 Copy the server certificate, key and CA files into the Docker certificates folder on the Harbor host. You must create the appropriate folders first.
 
 ```bash
-~]# mkdir -p /etc/docker/certs.d/harbor-server1.shinefire.com/
-~]# cp harbor-server1.shinefire.com.cert /etc/docker/certs.d/harbor-server1.shinefire.com/
-~]# cp harbor-server1.shinefire.com.key /etc/docker/certs.d/harbor-server1.shinefire.com/
-~]# cp myrootCA.crt /etc/docker/certs.d/harbor-server1.shinefire.com/
+~]# mkdir -p /etc/docker/certs.d/registry.ocp4.shinefire.com/
+~]# cp registry.ocp4.shinefire.com.cert /etc/docker/certs.d/registry.ocp4.shinefire.com/
+~]# cp registry.ocp4.shinefire.com.key /etc/docker/certs.d/registry.ocp4.shinefire.com/
+~]# cp myrootCA.crt /etc/docker/certs.d/registry.ocp4.shinefire.com/
 ```
 
 放在ca_download目录下
@@ -287,9 +291,9 @@ Copy the server certificate, key and CA files into the Docker certificates folde
 
 # The IP address or hostname to access admin UI and registry service.
 # DO NOT use localhost or 127.0.0.1, because Harbor needs to be accessed by external clients.
-hostname: harbor-server1.shinefire.com
-external_url: https://harbor-server1.shinefire.com
-
+hostname: registry.ocp4.shinefire.com
+external_url: https://registry.ocp4.shinefire.com
+  
 # http related config
 http:
   # port for http, default is 80. If https enabled, this port will redirect to https port
@@ -300,8 +304,8 @@ https:
   # https port for harbor, default is 443
   port: 443
   # The path of cert and key files for nginx
-  certificate: /etc/docker/certs.d/harbor-server1.shinefire.com/harbor-server1.shinefire.com.cert
-  private_key: /etc/docker/certs.d/harbor-server1.shinefire.com/harbor-server1.shinefire.com.key
+  certificate: /etc/docker/certs.d/registry.ocp4.shinefire.com/registry.ocp4.shinefire.com.cert
+  private_key: /etc/docker/certs.d/registry.ocp4.shinefire.com/registry.ocp4.shinefire.com.key
 
 ...(略)
 ```
@@ -313,7 +317,7 @@ https:
 接着执行下面的命令进行安装：
 
 ```bash
-[root@harbor-server1 harbor]# ./install.sh --with-notary --with-trivy --with-chartmuseum
+[root@registry harbor]# ./install.sh --with-notary --with-trivy --with-chartmuseum
 ```
 
 检查安装完后的结果，刚开始的时候可能会是starting启动的状态，等待都成功healthy状态
@@ -353,7 +357,7 @@ trivy-adapter       /home/scanner/entrypoint.sh      Up (healthy)
 现在可以通过 `podman login` 命令来测试仓库的连通性，看到如下字样即表示登录成功
 
 ```bash
-~]# podman login -u admin https://harbor-server1.shinefire.com
+~]# podman login -u admin https://registry.ocp4.shinefire.com
 Password:
 Login Succeeded!
 ```
@@ -365,7 +369,7 @@ Login Succeeded!
 REPOSITORY                       TAG     IMAGE ID      CREATED      SIZE
 localhost/goharbor/nginx-photon  v2.3.2  83bd32904c30  6 weeks ago  46 MB
 ~]# podman tag localhost/goharbor/nginx-photon:v2.3.2 bastion.shinefire.com/library/goharbor/nginx-photon
-~]# podman push harbor-server1.shinefire.com/library/goharbor/nginx-photon
+~]# podman push registry.ocp4.shinefire.com/library/goharbor/nginx-photon
 Getting image source signatures
 Copying blob f6e68d4c9b22 done
 Copying blob 7301dee185fe done
