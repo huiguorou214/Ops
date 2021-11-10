@@ -1,10 +1,14 @@
-# Deployment UPI OpenShift 4.8.12
+# Deployment UPI OpenShift 4.8.12 on a restricted network
 
 
 
 ## Introduction
 
 本文档为离线环境的 UPI（UserProvisioned Infrastructure）安装
+
+Installing a user-provisioned bare metal cluster on a restricted network
+
+
 
 
 
@@ -143,16 +147,13 @@ https://docs.openshift.com/container-platform/4.8/installing/installing_bare_met
 address=/mirror-ocp.ocp4.shinefire.com/192.168.31.158
 address=/bootstrap.ocp4.shinefire.com/192.168.31.159
 address=/bastion.ocp4.shinefire.com/192.168.31.160
-address=/registry.ocp4.shinefire.com/192.168.31.160
+address=/registry-01.ocp4.shinefire.com/192.168.31.167
 address=/api.ocp4.shinefire.com/192.168.31.160
 address=/api-int.ocp4.shinefire.com/192.168.31.160
 address=/apps.ocp4.shinefire.com/192.168.31.160
 address=/master-1.ocp4.shinefire.com/192.168.31.161
-address=/etcd-1.ocp4.shinefire.com/192.168.31.161
 address=/master-2.ocp4.shinefire.com/192.168.31.162
-address=/etcd-2.ocp4.shinefire.com/192.168.31.162
 address=/master-3.ocp4.shinefire.com/192.168.31.163
-address=/etcd-3.ocp4.shinefire.com/192.168.31.163
 address=/worker-1.ocp4.shinefire.com/192.168.31.164
 address=/worker-2.ocp4.shinefire.com/192.168.31.165
 ptr-record=158.31.168.192.in-addr.arpa,mirror-ocp.ocp4.shinefire.com
@@ -166,10 +167,6 @@ ptr-record=162.31.168.192.in-addr.arpa,master-2.ocp4.shinefire.com
 ptr-record=163.31.168.192.in-addr.arpa,master-3.ocp4.shinefire.com
 ptr-record=164.31.168.192.in-addr.arpa,worker-1.ocp4.shinefire.com
 ptr-record=165.31.168.192.in-addr.arpa,worker-2.ocp4.shinefire.com
-srv-host=_etcd-server-ssl._tcp.ocp4.shinefire.com,etcd-1.ocp4.shinefire.com,2380,10
-srv-host=_etcd-server-ssl._tcp.ocp4.shinefire.com,etcd-2.ocp4.shinefire.com,2380,10
-srv-host=_etcd-server-ssl._tcp.ocp4.shinefire.com,etcd-3.ocp4.shinefire.com,2380,10
-log-queries
 ```
 
 > 注意： In OpenShift Container Platform 4.4 and later, you do not need to specify etcd host and SRV records in your DNS configuration.
@@ -181,7 +178,7 @@ log-queries
 ```bash
 ~]# dig +noall +answer @192.168.31.100 api.ocp4.shinefire.com
 api.ocp4.shinefire.com. 0       IN      A       192.168.31.160
-~]# dig +noall +answer @192.168.31.100 api.ocp4.shinefire.com
+~]# dig +noall +answer @192.168.31.100 api-int.ocp4.shinefire.com
 api.ocp4.shinefire.com. 0       IN      A       192.168.31.160
 ~]# dig +noall +answer @192.168.31.100 -x 192.168.31.160
 160.31.168.192.in-addr.arpa. 0  IN      PTR     apps.ocp4.shinefire.com.
@@ -339,9 +336,6 @@ YWRtaW46SGFyYm9yMTIzNDU=
 
 待删除：
 
-~]# export LOCAL_REGISTRY='registry-1.ocp4.shinefire.com' 
-~]# export LOCAL_REPOSITORY='ocp4/openshift4'
-
 ```bash
 ~]# export OCP_RELEASE="4.8.12"
 ~]# export PRODUCT_REPO="openshift-release-dev"
@@ -451,10 +445,10 @@ kubectl
 
 ```bash
 ~]# tar xzf ocp4-mirror.tar.gz -C /
-~]# docker login registry-1.ocp4.shinefire.com
+~]# docker login registry.ocp4.shinefire.com
 [root@registry-1 ~]# oc image mirror -a ${LOCAL_SECRET_JSON} \
   --from-dir=${REMOVABLE_MEDIA_PATH} \
-  "file://openshift/release:${OCP_RELEASE}-${ARCHITECTURE}*" \
+  "file://openshift/release:${OCP_RELEASE}*" \
   ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}
 或者
 [root@registry-1 ~]# oc image mirror -a ${LOCAL_SECRET_JSON} \
@@ -540,7 +534,7 @@ global
     daemon
 
 defaults
-    mode                    http
+    mode                    tcp
     log                     global
     option                  tcplog
     option                  dontlognull
@@ -555,7 +549,7 @@ defaults
     timeout server          1m
     timeout http-keep-alive 10s
     timeout check           10s
-    maxconn                 3000
+    maxconn                 30000
 
 # 可选项,可以通过页面查看负载监控状态
 frontend stats
@@ -643,6 +637,18 @@ kubectl
 ~]# mv oc kubectl /usr/local/bin/
 ~]# oc version
 Client Version: 4.8.12
+```
+
+
+
+### oc命令补全
+
+启用oc命令自动补全，配置后切换一下bash即可生效
+
+```bash
+[root@bastion ~]# oc completion bash > oc_bash_completion
+[root@bastion ~]# mv oc_bash_completion /etc/bash_completion.d/
+[root@bastion ~]# bash
 ```
 
 
@@ -864,8 +870,6 @@ manifests  openshift
 
 
 
-（待删除，这里先不改，等后面再改算了）
-
 修改生成的 `<installation_directory>/manifests/cluster-scheduler-02-config.yml` 文件，将 `mastersSchedulable` 改为 `false` ，让以后使用 OpenShift 平台的时候，不会把 Pod 调度到 Master 节点上。
 
 ```yaml
@@ -896,8 +900,6 @@ INFO Consuming OpenShift Install (Manifests) from target directory
 INFO Consuming Openshift Manifests from target directory
 INFO Ignition-Configs created in: /root/ocp4-install and /root/ocp4-install/auth
 ```
-
-
 
 检查创建结果
 
@@ -953,60 +955,22 @@ worker.ign         100%[=============================>]   1.68K  --.-KB/s    in 
 
 
 
-### 位置 chrony 时间服务（暂未配置，可选项仅供参考）
-
-虽然配置时间服务是非必需的，不过有条件的话，也配置一下时间服务器会比较好，能让集群的各个节点更好的统一时间。
-
-下面配置 chrony 时间服务的操作，摘自官方：https://docs.openshift.com/container-platform/4.8/installing/installing_bare_metal/installing-restricted-networks-bare-metal.html#installation-special-config-chrony_installing-restricted-networks-bare-metal
-
-Create a Butane config including the contents of the `chrony.conf` file. For example, to configure chrony on worker nodes, create a `99-worker-chrony.bu` file.
-
-```yaml
-variant: openshift
-version: 4.8.0
-metadata:
-  name: 99-worker-chrony 
-  labels:
-    machineconfiguration.openshift.io/role: worker 
-storage:
-  files:
-  - path: /etc/chrony.conf
-    mode: 0644
-    overwrite: true
-    contents:
-      inline: |
-        pool 0.rhel.pool.ntp.org iburst 
-        driftfile /var/lib/chrony/drift
-        makestep 1.0 3
-        rtcsync
-        logdir /var/log/chrony
-```
-
-Use Butane to generate a `MachineConfig` object file, `99-worker-chrony.yaml`, containing the configuration to be delivered to the nodes:
-
-```bash
-butane 99-worker-chrony.bu -o 99-worker-chrony.yaml
-```
-
-Apply the configurations in one of two ways:
-
-- If the cluster is not running yet, after you generate manifest files, add the `MachineConfig` object file to the `<installation_directory>/openshift` directory, and then continue to create the cluster.
-
-- If the cluster is already running, apply the file:
-
-  ```bash
-  oc apply -f ./99-worker-chrony.yaml
-
-
-
 ## 安装 RHCOS 启动 OCP 集群
 
 ### 监控部署
 
-执行openshift-install命令监控部署状态
+执行openshift-install命令监控bootstrap是否正常运行
 
 ```bash
 [root@bastion ~]# ./openshift-install --dir=/root/ocp4-install wait-for bootstrap-complete --log-level=debug
+```
+
+
+
+执行 openshift-install 命令监控 master 节点是否都已经部署完毕
+
+```bash
+[root@bastion ~]# openshift-install --dir=/root/ocp4-install wait-for install-complete
 ```
 
 
@@ -1122,6 +1086,51 @@ oc edit schedulers.config.openshift.io cluster
 
 
 
+### 配置 chrony 时间服务（暂未配置，可选项仅供参考）
+
+虽然配置时间服务是非必需的，不过有条件的话，也配置一下时间服务器会比较好，能让集群的各个节点更好的统一时间。
+
+下面配置 chrony 时间服务的操作，摘自官方：https://docs.openshift.com/container-platform/4.8/installing/installing_bare_metal/installing-restricted-networks-bare-metal.html#installation-special-config-chrony_installing-restricted-networks-bare-metal
+
+Create a Butane config including the contents of the `chrony.conf` file. For example, to configure chrony on worker nodes, create a `99-worker-chrony.bu` file.
+
+```yaml
+variant: openshift
+version: 4.8.0
+metadata:
+  name: 99-worker-chrony 
+  labels:
+    machineconfiguration.openshift.io/role: worker 
+storage:
+  files:
+  - path: /etc/chrony.conf
+    mode: 0644
+    overwrite: true
+    contents:
+      inline: |
+        pool 0.rhel.pool.ntp.org iburst 
+        driftfile /var/lib/chrony/drift
+        makestep 1.0 3
+        rtcsync
+        logdir /var/log/chrony
+```
+
+Use Butane to generate a `MachineConfig` object file, `99-worker-chrony.yaml`, containing the configuration to be delivered to the nodes:
+
+```bash
+butane 99-worker-chrony.bu -o 99-worker-chrony.yaml
+```
+
+Apply the configurations in one of two ways:
+
+- If the cluster is not running yet, after you generate manifest files, add the `MachineConfig` object file to the `<installation_directory>/openshift` directory, and then continue to create the cluster.
+
+- If the cluster is already running, apply the file:
+
+  ```bash
+  oc apply -f ./99-worker-chrony.yaml
+  ```
+
 
 
 
@@ -1188,19 +1197,7 @@ bootstrap.ocp4.shinefire.com release-image-download.sh[1698]: time="2021-10-05T1
 
 A：
 
-
-
- 
-
----
-
-Q5：
-
-安装 OCP 集群的时候，节点使用的都是临时的 DNS ，后面要使用企业内部的公共 DNS 服务器了应该怎么办呢？
-
-A：
-
-
+这种情况我猜测是导入离线镜像的时候除了问题
 
 
 
@@ -1694,14 +1691,6 @@ I1008 15:00:05.887665       1 router.go:579] template "msg"="router reloaded"  "
 
 ---
 
-
-
-
-
-
-
----
-
 Q8：
 
 折腾了一番发现有的 console pod 处于 Pending 状态，查看 event 发现以下内容：
@@ -1719,6 +1708,87 @@ Events:
 A：
 
 修改了 node 的调度性的话倒是可以被调度了，但是依然不能正常启动
+
+
+
+
+
+Q9：
+
+尝试换了默认的网络类型再次安装依旧是一模一样的错误，我觉得和我的VMware Workstations环境有关系了...
+
+尝试使用`oc adm must-gather`命令，发现一些报错如下：
+
+```bash
+ClusterID: 057052b0-4793-4fca-b5ed-410fa9331e05
+ClusterVersion: Installing "4.8.12" for About an hour: Unable to apply 4.8.12: some cluster operators have not yet rolled out
+ClusterOperators:
+        clusteroperator/authentication is not available (OAuthServerRouteEndpointAccessibleControllerAvailable: Get "https://oauth-openshift.apps.ocp4.shinefire.com/healthz": dial tcp 3.223.115.185:443: i/o timeout (Client.Timeout exceeded while awaiting headers)) because OAuthServerRouteEndpointAccessibleControllerDegraded: Get "https://oauth-openshift.apps.ocp4.shinefire.com/healthz": dial tcp 3.223.115.185:443: i/o timeout (Client.Timeout exceeded while awaiting headers)
+        clusteroperator/console is not available (DeploymentAvailable: 0 replicas available for console deployment
+RouteHealthAvailable: failed to GET route (https://console-openshift-console.apps.ocp4.shinefire.com/health): Get "https://console-openshift-console.apps.ocp4.shinefire.com/health": context deadline exceeded (Client.Timeout exceeded while awaiting headers)) because RouteHealthDegraded: failed to GET route (https://console-openshift-console.apps.ocp4.shinefire.com/health): Get "https://console-openshift-console.apps.ocp4.shinefire.com/health": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+        clusteroperator/ingress is degraded because The "default" ingress controller reports Degraded=True: DegradedConditions: One or more other status conditions indicate a degraded state: CanaryChecksSucceeding=False (CanaryChecksRepetitiveFailures: Canary route checks for the default ingress controller are failing)
+```
+
+另外查看了一下 ingress 的 event，内容如下：
+
+```
+[root@bastion ~]# oc get events -n openshift-ingress
+LAST SEEN   TYPE      REASON             OBJECT                                MESSAGE
+45m         Normal    CreatedSCCRanges   namespace/openshift-ingress           created SCC ranges
+39m         Normal    Scheduled          pod/router-default-6f6f7d99fb-7zj59   Successfully assigned openshift-ingress/router-default-6f6f7d99fb-7zj59 to master-1.ocp4.shinefire.com
+39m         Normal    Pulling            pod/router-default-6f6f7d99fb-7zj59   Pulling image "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c17581091fe49d1c9c136b6c303951cfa9ca20b2d130f9cc6c4403603d4038a5"
+39m         Normal    Pulled             pod/router-default-6f6f7d99fb-7zj59   Successfully pulled image "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c17581091fe49d1c9c136b6c303951cfa9ca20b2d130f9cc6c4403603d4038a5" in 10.297290755s
+39m         Normal    Created            pod/router-default-6f6f7d99fb-7zj59   Created container router
+39m         Normal    Started            pod/router-default-6f6f7d99fb-7zj59   Started container router
+45m         Normal    Scheduled          pod/router-default-6f6f7d99fb-q9pbp   Successfully assigned openshift-ingress/router-default-6f6f7d99fb-q9pbp to master-3.ocp4.shinefire.com
+44m         Warning   FailedMount        pod/router-default-6f6f7d99fb-q9pbp   MountVolume.SetUp failed for volume "metrics-certs" : secret "router-metrics-certs-default" not found
+43m         Warning   FailedMount        pod/router-default-6f6f7d99fb-q9pbp   Unable to attach or mount volumes: unmounted volumes=[metrics-certs], unattached volumes=[kube-api-access-6h5qp default-certificate service-ca-bundle stats-auth metrics-certs]: timed out waiting for the condition
+42m         Normal    Pulling            pod/router-default-6f6f7d99fb-q9pbp   Pulling image "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c17581091fe49d1c9c136b6c303951cfa9ca20b2d130f9cc6c4403603d4038a5"
+42m         Normal    Pulled             pod/router-default-6f6f7d99fb-q9pbp   Successfully pulled image "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c17581091fe49d1c9c136b6c303951cfa9ca20b2d130f9cc6c4403603d4038a5" in 1.758390459s
+42m         Normal    Created            pod/router-default-6f6f7d99fb-q9pbp   Created container router
+42m         Normal    Started            pod/router-default-6f6f7d99fb-q9pbp   Started container router
+45m         Normal    Scheduled          pod/router-default-6f6f7d99fb-rtvlv   Successfully assigned openshift-ingress/router-default-6f6f7d99fb-rtvlv to master-2.ocp4.shinefire.com
+44m         Warning   FailedMount        pod/router-default-6f6f7d99fb-rtvlv   MountVolume.SetUp failed for volume "metrics-certs" : secret "router-metrics-certs-default" not found
+43m         Warning   FailedMount        pod/router-default-6f6f7d99fb-rtvlv   Unable to attach or mount volumes: unmounted volumes=[metrics-certs], unattached volumes=[default-certificate service-ca-bundle stats-auth metrics-certs kube-api-access-9wnlq]: timed out waiting for the condition
+42m         Normal    Pulling            pod/router-default-6f6f7d99fb-rtvlv   Pulling image "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c17581091fe49d1c9c136b6c303951cfa9ca20b2d130f9cc6c4403603d4038a5"
+42m         Normal    Pulled             pod/router-default-6f6f7d99fb-rtvlv   Successfully pulled image "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c17581091fe49d1c9c136b6c303951cfa9ca20b2d130f9cc6c4403603d4038a5" in 1.667935886s
+42m         Normal    Created            pod/router-default-6f6f7d99fb-rtvlv   Created container router
+42m         Normal    Started            pod/router-default-6f6f7d99fb-rtvlv   Started container router
+41m         Warning   ProbeError         pod/router-default-6f6f7d99fb-rtvlv   Readiness probe error: Get "http://localhost:1936/healthz/ready": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+body:
+41m         Warning   Unhealthy          pod/router-default-6f6f7d99fb-rtvlv   Readiness probe failed: Get "http://localhost:1936/healthz/ready": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+40m         Warning   ProbeError         pod/router-default-6f6f7d99fb-rtvlv   Liveness probe error: Get "http://localhost:1936/healthz": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+body:
+40m         Warning   Unhealthy           pod/router-default-6f6f7d99fb-rtvlv    Liveness probe failed: Get "http://localhost:1936/healthz": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+45m         Normal    SuccessfulCreate    replicaset/router-default-6f6f7d99fb   Created pod: router-default-6f6f7d99fb-rtvlv
+45m         Normal    SuccessfulCreate    replicaset/router-default-6f6f7d99fb   Created pod: router-default-6f6f7d99fb-q9pbp
+39m         Normal    SuccessfulCreate    replicaset/router-default-6f6f7d99fb   Created pod: router-default-6f6f7d99fb-7zj59
+45m         Normal    NoPods              poddisruptionbudget/router-default     No matching pods found
+45m         Normal    ScalingReplicaSet   deployment/router-default              Scaled up replica set router-default-6f6f7d99fb to 2
+39m         Normal    ScalingReplicaSet   deployment/router-default              Scaled up replica set router-default-6f6f7d99fb to 3
+```
+
+
+
+Q10：
+
+监控安装集群的时候提示了一些报错
+
+```
+DEBUG OpenShift Installer 4.8.12
+DEBUG Built from commit 450e95767d89f809cb1afe5a142e9c824a269de8
+INFO Waiting up to 20m0s for the Kubernetes API at https://api.ocp4.shinefire.com:6443...
+DEBUG Still waiting for the Kubernetes API: an error on the server ("") has prevented the request from succeeding
+INFO API v1.21.1+d8043e1 up
+INFO Waiting up to 30m0s for bootstrapping to complete...
+W1106 12:29:02.638700   53004 reflector.go:436] k8s.io/client-go/tools/watch/informerwatcher.go:146: watch of *v1.ConfigMap ended with: very short watch: k8s.io/client-go/tools/watch/informerwatcher.go:146: Unexpected watch close - watch lasted less than a second and no items received
+I1106 12:29:16.790036   53004 trace.go:205] Trace[1474941318]: "Reflector ListAndWatch" name:k8s.io/client-go/tools/watch/informerwatcher.go:146 (06-Nov-2021 12:29:03.779) (total time: 13010ms):
+Trace[1474941318]: [13.010251166s] [13.010251166s] END
+E1106 12:29:16.790079   53004 reflector.go:138] k8s.io/client-go/tools/watch/informerwatcher.go:146: Failed to watch *v1.ConfigMap: failed to list *v1.ConfigMap: Get "https://api.ocp4.shinefire.com:6443/api/v1/namespaces/kube-system/configmaps?fieldSelector=metadata.name%3Dbootstrap&resourceVersion=12599": net/http: TLS handshake timeout
+I1106 12:29:28.498936   53004 trace.go:205] Trace[336122540]: "Reflector ListAndWatch" name:k8s.io/client-go/tools/watch/informerwatcher.go:146 (06-Nov-2021 12:29:18.495) (total time: 10003ms):
+Trace[336122540]: [10.003402146s] [10.003402146s] END
+E1106 12:29:28.498979   53004 reflector.go:138] k8s.io/client-go/tools/watch/informerwatcher.go:146: Failed to watch *v1.ConfigMap: failed to list *v1.ConfigMap: Get "https://api.ocp4.shinefire.com:6443/api/v1/namespaces/kube-system/configmaps?fieldSelector=metadata.name%3Dbootstrap&resourceVersion=12599": net/http: TLS handshake timeout
+```
 
 
 
