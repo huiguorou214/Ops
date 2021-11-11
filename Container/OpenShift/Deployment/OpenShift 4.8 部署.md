@@ -8,6 +8,11 @@
 
 Installing a user-provisioned bare metal cluster on a restricted network
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> ac2967f693fe8dd0dd57ae63a8dfc8718dad6756
 
 
 ## 一、Architecture
@@ -963,8 +968,13 @@ worker.ign         100%[=============================>]   1.68K  --.-KB/s    in 
 [root@bastion ~]# ./openshift-install --dir=/root/ocp4-install wait-for bootstrap-complete --log-level=debug
 ```
 
+<<<<<<< HEAD
 
 
+=======
+
+
+>>>>>>> ac2967f693fe8dd0dd57ae63a8dfc8718dad6756
 执行 openshift-install 命令监控 master 节点是否都已经部署完毕
 
 ```bash

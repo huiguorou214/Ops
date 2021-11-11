@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 离线环境部署 OperatorHub
 
 对于在受限网络中安装的 OpenShift Container Platform 集群（也称为 *断开连接的集群* ），Operator Lifecycle Manager(OLM)默认无法访问远程 registry 上托管的红帽提供的 OperatorHub 源，因为这些远程源需要足够的互联网连接。
@@ -163,21 +164,57 @@ Login Succeeded!
 #### 裁剪镜像
 
 在镜像仓库创建一个用来保存定制的 index image 的项目（步骤略过）
+=======
+# 离线部署 OperatorHub
+
+
+
+思路说明：
+
+1. skopeo同步官方的operator-index到本地镜像仓库中，例如：
+
+   ```bash
+   skopeo copy \
+       docker://registry.redhat.io/redhat/redhat-operator-index:v4.8 \
+       docker://quay.io/wangzheng422/operator-catalog:redhat-${var_major_version}-$var_date
+
+2. 如果有定制需求就对官方的index image进行裁剪，因为默认会有很多，如果你不想要那么多就裁剪掉一些，参考：https://docs.openshift.com/container-platform/4.8/operators/admin/olm-restricted-networks.html#olm-pruning-index-image_olm-restricted-networks
+
+3. 使用 `oc image mirror` 命令将 index image 离线到本地镜像仓库中
+
+4. 使用 `oc adm catalog mirror` 命令将所有镜像离线到本地
+
+5. 将离线好的文件打包带到离线环境中
+
+6. 再次使用 `oc adm catalog mirror` 命令将打包好的文件导入到离线环境中
+
+ 
+
+## 离线 index image 到本地镜像仓库
+>>>>>>> ac2967f693fe8dd0dd57ae63a8dfc8718dad6756
 
 
 
 裁剪镜像
 
 ```bash
+<<<<<<< HEAD
 ~]# opm index prune \
    -f registry.redhat.io/redhat/redhat-operator-index:v4.8 \
    -p elasticsearch-operator,cluster-logging \
    -t registry.ocp4.shinefire.com:8443/my-operator/my-operator-index:v4.8-202111
+=======
+opm index prune \
+  -f registry.redhat.io/redhat/redhat-operator-index:v4.8 \
+  -p elasticsearch-operator,cluster-logging \
+  -t registry-1.ocp4.shinefire.com/my-operator/my-redhat-operator-index:v4.8-202110
+>>>>>>> ac2967f693fe8dd0dd57ae63a8dfc8718dad6756
 ```
 
 推送镜像到镜像仓库
 
 ```bash
+<<<<<<< HEAD
 ~]# podman push registry.ocp4.shinefire.com:8443/my-operator/my-operator-index:v4.8-202111
 Getting image source signatures
 Copying blob 6a1c42e146d1 done
@@ -210,10 +247,23 @@ Storing signatures
 -a /root/pull-secret.json \
 registry.ocp4.shinefire.com:8443/my-operator/my-operator-index:v4.8-202111 \
 file:///efk-mirror \
+=======
+podman push registry-1.ocp4.shinefire.com/my-operator/my-redhat-operator-index:v4.8-202110
+```
+
+
+离线裁剪后的镜像到本地
+
+```bash
+oc adm catalog mirror -a /root/pull-secret.json \
+registry-1.ocp4.shinefire.com/operator-index/my-redhat-operator-index:v4.8-202110 \
+file:///ocp4812-operator/openshift-efk \
+>>>>>>> ac2967f693fe8dd0dd57ae63a8dfc8718dad6756
 --insecure \
 --index-filter-by-os='linux/amd64'
 ```
 
+<<<<<<< HEAD
 注意：pull-secret.json 需要配置好访问红帽官网和本地镜像仓库的账户，或者像之前一样提前两边登录应该也可以，暂未验证。
 
 
@@ -422,10 +472,57 @@ NAME                          STATUS                     ROLES           AGE    
 master-1.ocp4.shinefire.com   Ready                      master,worker   3d20h   v1.21.1+d8043e1
 master-2.ocp4.shinefire.com   Ready                      master,worker   3d20h   v1.21.1+d8043e1
 master-3.ocp4.shinefire.com   Ready,SchedulingDisabled   master,worker   3d19h   v1.21.1+d8043e1
+=======
+
+
+
+
+## 离线指定的 Operator 到本地目录下
+
+这个和离线 OpenShift4 安装镜像比较类似，需要先找一台能够联网的机器，指定需要的版本的 index 镜像，然后程序会根据 index 镜像中的镜像清单，一个个的离线到本地目录中，就可以打包用于后续放入到离线环境中导入到离线的 OpenShift 环境中使用了。
+
+注意：记得提前准备好300G的剩余空间，一共要两百多G的大小，之前由于空间不够，扩容了几次才搞定的...  另外还需要考虑打包，空间需求会更多
+
+
+
+创建保存用的目录
+
+```bash
+[root@mirror-ocp ~]# mkdir -p /operatorhub/
+```
+
+使用 oc 命令离线所有的官方镜像，这个要等很久才会开始，先不要着急...
+
+```bash
+oc adm catalog mirror -a /root/pull-secret.json \
+registry.redhat.io/redhat/redhat-operator-index:v4.8 \
+file:///operatorhub \
+--insecure \
+--index-filter-by-os='linux/amd64' \
+--max-components=5
+```
+
+命令执行后的输出示例：
+
+```bash
+[root@mirror-ocp ~]# oc adm catalog mirror \
+> registry.redhat.io/redhat/redhat-operator-index:v4.8 \
+> file:///operatorhub/redhat-operators -a /root/pull-secret.json \
+> --insecure \
+> --index-filter-by-os='linux/amd64'
+src image has index label for database path: /database/index.db
+using database path mapping: /database/index.db:/tmp/612318678
+W1018 20:12:16.187983    3260 manifest.go:442] Chose linux/amd64 manifest from the manifest list.
+wrote database to /tmp/612318678
+using database at: /tmp/612318678/index.db
+...
+
+>>>>>>> ac2967f693fe8dd0dd57ae63a8dfc8718dad6756
 ```
 
 
 
+<<<<<<< HEAD
 ### 从 index image 中创建 catalog
 
 创建一个 CatalogSource 类型的对象来引用 index image 资源。
@@ -496,6 +593,8 @@ cluster-logging          My Operator Catalog   80s
 
 
 
+=======
+>>>>>>> ac2967f693fe8dd0dd57ae63a8dfc8718dad6756
 
 
 ## Q&A
@@ -531,6 +630,7 @@ wrote mirroring manifests to manifests-redhat-operator-index-1634594897
 To upload local images to a registry, run:
 
         oc adm catalog mirror file://operatorhub/redhat/redhat-operator-index:v4.8 REGISTRY/REPOSITORY
+<<<<<<< HEAD
 ```
 
 A1：
@@ -580,6 +680,14 @@ A：
 - https://docs.openshift.com/container-platform/4.8/operators/admin/olm-restricted-networks.html#olm-pruning-index-image_olm-restricted-networks
 - [Operator installation fails with "Bundle unpacking failed. Reason: DeadlineExceeded, and Message: Job was active longer than specified deadline"](https://access.redhat.com/solutions/6459071)
 - [olm访问私有仓库的配置文档](https://docs.openshift.com/container-platform/4.8/operators/admin/olm-managing-custom-catalogs.html#olm-accessing-images-private-registries_olm-managing-custom-catalogs)
+=======
+
+```
+
+
+
+
+>>>>>>> ac2967f693fe8dd0dd57ae63a8dfc8718dad6756
 
 
 
