@@ -8,11 +8,7 @@
 
 Installing a user-provisioned bare metal cluster on a restricted network
 
-<<<<<<< HEAD
-=======
 
-
->>>>>>> ac2967f693fe8dd0dd57ae63a8dfc8718dad6756
 
 
 ## 一、Architecture
@@ -968,19 +964,6 @@ worker.ign         100%[=============================>]   1.68K  --.-KB/s    in 
 [root@bastion ~]# ./openshift-install --dir=/root/ocp4-install wait-for bootstrap-complete --log-level=debug
 ```
 
-<<<<<<< HEAD
-
-
-=======
-
-
->>>>>>> ac2967f693fe8dd0dd57ae63a8dfc8718dad6756
-执行 openshift-install 命令监控 master 节点是否都已经部署完毕
-
-```bash
-[root@bastion ~]# openshift-install --dir=/root/ocp4-install wait-for install-complete
-```
-
 
 
 ### Bootstrap
@@ -1811,8 +1794,6 @@ E1106 12:29:28.498979   53004 reflector.go:138] k8s.io/client-go/tools/watch/inf
 - [openshift 4.5.9 离线安装](https://zhangguanzhang.github.io/2020/09/18/ocp-4.5-install/)
 - https://www.ethanzhang.xyz/openshift4.5.6%E7%9A%84%E5%AE%89%E8%A3%85%E5%8F%82%E8%80%83%E6%8C%87%E5%8D%97/
 
-
-
 - [[Help] OpenShift Web console is down](https://www.reddit.com/r/openshift/comments/hayxas/help_openshift_web_console_is_down/)
 
 
@@ -1835,8 +1816,4 @@ E1106 12:29:28.498979   53004 reflector.go:138] k8s.io/client-go/tools/watch/inf
 oc image mirror -a ${LOCAL_SECRET_JSON} --from-dir=${REMOVABLE_MEDIA_PATH}/mirror "file://openshift/release:${OCP_RELEASE}*" ${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} 
 
 导入镜像到内部仓库的时候，pull-secret里面的仓库地址，如果这个地址指定的是内部仓库的，再由这个创建一个 openshift-install 那就是内部仓库的了，所以这个 openshift-install 可能也在离线环境里面去生成会比较合适
-
-
-
-### openshift-install 官方拉取的成功了
 
