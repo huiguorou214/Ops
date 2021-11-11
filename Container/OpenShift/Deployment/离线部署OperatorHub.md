@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 离线环境部署 OperatorHub
 
 对于在受限网络中安装的 OpenShift Container Platform 集群（也称为 *断开连接的集群* ），Operator Lifecycle Manager(OLM)默认无法访问远程 registry 上托管的红帽提供的 OperatorHub 源，因为这些远程源需要足够的互联网连接。
@@ -27,8 +26,6 @@
 如需了解在断开连接的模式模中可以运行的 Operator 列表，请参阅以下红帽知识库文章：
 
 https://access.redhat.com/articles/4740011
-
-
 
 
 
@@ -161,11 +158,7 @@ Login Succeeded!
 
 
 
-#### 裁剪镜像
-
-在镜像仓库创建一个用来保存定制的 index image 的项目（步骤略过）
-=======
-# 离线部署 OperatorHub
+## 离线部署 OperatorHub
 
 
 
@@ -191,30 +184,19 @@ Login Succeeded!
  
 
 ## 离线 index image 到本地镜像仓库
->>>>>>> ac2967f693fe8dd0dd57ae63a8dfc8718dad6756
-
-
 
 裁剪镜像
 
 ```bash
-<<<<<<< HEAD
 ~]# opm index prune \
    -f registry.redhat.io/redhat/redhat-operator-index:v4.8 \
    -p elasticsearch-operator,cluster-logging \
    -t registry.ocp4.shinefire.com:8443/my-operator/my-operator-index:v4.8-202111
-=======
-opm index prune \
-  -f registry.redhat.io/redhat/redhat-operator-index:v4.8 \
-  -p elasticsearch-operator,cluster-logging \
-  -t registry-1.ocp4.shinefire.com/my-operator/my-redhat-operator-index:v4.8-202110
->>>>>>> ac2967f693fe8dd0dd57ae63a8dfc8718dad6756
 ```
 
 推送镜像到镜像仓库
 
 ```bash
-<<<<<<< HEAD
 ~]# podman push registry.ocp4.shinefire.com:8443/my-operator/my-operator-index:v4.8-202111
 Getting image source signatures
 Copying blob 6a1c42e146d1 done
@@ -240,30 +222,18 @@ Storing signatures
 
 
 
-离线裁剪后的镜像到本地
+指定裁剪后的镜像将需要的 operator 到本地
 
 ```bash
 ~]# oc adm catalog mirror \
 -a /root/pull-secret.json \
 registry.ocp4.shinefire.com:8443/my-operator/my-operator-index:v4.8-202111 \
 file:///efk-mirror \
-=======
-podman push registry-1.ocp4.shinefire.com/my-operator/my-redhat-operator-index:v4.8-202110
-```
-
-
-离线裁剪后的镜像到本地
-
-```bash
-oc adm catalog mirror -a /root/pull-secret.json \
-registry-1.ocp4.shinefire.com/operator-index/my-redhat-operator-index:v4.8-202110 \
-file:///ocp4812-operator/openshift-efk \
->>>>>>> ac2967f693fe8dd0dd57ae63a8dfc8718dad6756
 --insecure \
 --index-filter-by-os='linux/amd64'
 ```
 
-<<<<<<< HEAD
+
 注意：pull-secret.json 需要配置好访问红帽官网和本地镜像仓库的账户，或者像之前一样提前两边登录应该也可以，暂未验证。
 
 
@@ -444,15 +414,40 @@ metadata:
 ...
 ```
 
-
-
 根据实际环境修改 imageContentSourcePolicy.yaml 中的镜像路径映射
 
+默认的镜像映射路径，示例如下：
+
+```bash
+~]# tail -n6 imageContentSourcePolicy.yaml
+  - mirrors:
+    - registry.ocp4.shinefire.com:8443/efk-mirror/openshift4-ose-elasticsearch-operator-bundle
+    source: efk-mirror/my-operator/my-operator-index/openshift4/ose-elasticsearch-operator-bundle
+  - mirrors:
+    - registry.ocp4.shinefire.com:8443/efk-mirror/openshift4-ose-elasticsearch-proxy
+    source: efk-mirror/my-operator/my-operator-index/openshift4/ose-elasticsearch-proxy
+```
+
+因为是采用了离线到指定目录再上传到 openshift 离线环境中，所以导入时自动生成的 imageContentSourcePolicy 文件里面，source 字段是一个之前离线的目录，如果直接使用这个默认文件部署的话会导致后面在安装 operator 时无法将 operator 中默认的来自 registry.redhat.io 的镜像路径，映射到我们的内部镜像仓库中，从而导致超时失败。
+
+修改后的文件，示例如下：
+
+```bash
+~]# sed -i 's#efk-mirror/my-operator/my-operator-index#registry.redhat.io#g' imageContentSourcePolicy.yaml
+~]# tail -n6 imageContentSourcePolicy.yaml
+  - mirrors:
+    - registry.ocp4.shinefire.com:8443/efk-mirror/openshift4-ose-elasticsearch-operator-bundle
+    source: registry.redhat.io/openshift4/ose-elasticsearch-operator-bundle
+  - mirrors:
+    - registry.ocp4.shinefire.com:8443/efk-mirror/openshift4-ose-elasticsearch-proxy
+    source: registry.redhat.io/openshift4/ose-elasticsearch-proxy
+```
+
+**注意：**根据自己的实际环境来替换，可能你的 source 路径和镜像仓库路径和我的都不一样
 
 
 
-
-在可访问断开连接的集群的主机上，运行以下命令指定清单目录中的 `imageContentSourcePolicy.yaml 文件，创建 ImageContentSourcePolicy` (ICSP)对象：
+运行以下命令指定清单目录中的 `imageContentSourcePolicy.yaml` 文件，创建 ImageContentSourcePolicy (ICSP)对象：
 
 ```bash
 [root@bastion efk-mirror]# oc create -f manifests-my-operator/my-operator-index-1636602048/imageContentSourcePolicy.yaml
@@ -472,18 +467,13 @@ NAME                          STATUS                     ROLES           AGE    
 master-1.ocp4.shinefire.com   Ready                      master,worker   3d20h   v1.21.1+d8043e1
 master-2.ocp4.shinefire.com   Ready                      master,worker   3d20h   v1.21.1+d8043e1
 master-3.ocp4.shinefire.com   Ready,SchedulingDisabled   master,worker   3d19h   v1.21.1+d8043e1
-=======
-
+```
 
 
 
 ## 离线指定的 Operator 到本地目录下
 
 这个和离线 OpenShift4 安装镜像比较类似，需要先找一台能够联网的机器，指定需要的版本的 index 镜像，然后程序会根据 index 镜像中的镜像清单，一个个的离线到本地目录中，就可以打包用于后续放入到离线环境中导入到离线的 OpenShift 环境中使用了。
-
-注意：记得提前准备好300G的剩余空间，一共要两百多G的大小，之前由于空间不够，扩容了几次才搞定的...  另外还需要考虑打包，空间需求会更多
-
-
 
 创建保存用的目录
 
@@ -516,13 +506,10 @@ W1018 20:12:16.187983    3260 manifest.go:442] Chose linux/amd64 manifest from t
 wrote database to /tmp/612318678
 using database at: /tmp/612318678/index.db
 ...
-
->>>>>>> ac2967f693fe8dd0dd57ae63a8dfc8718dad6756
 ```
 
 
 
-<<<<<<< HEAD
 ### 从 index image 中创建 catalog
 
 创建一个 CatalogSource 类型的对象来引用 index image 资源。
@@ -588,15 +575,6 @@ cluster-logging          My Operator Catalog   80s
 
 
 
-
-
-
-
-
-=======
->>>>>>> ac2967f693fe8dd0dd57ae63a8dfc8718dad6756
-
-
 ## Q&A
 
 
@@ -630,29 +608,13 @@ wrote mirroring manifests to manifests-redhat-operator-index-1634594897
 To upload local images to a registry, run:
 
         oc adm catalog mirror file://operatorhub/redhat/redhat-operator-index:v4.8 REGISTRY/REPOSITORY
-<<<<<<< HEAD
 ```
 
-A1：
+A：
 
-估计还是有问题的，这样离线完毕后，导入到离线环境的 OpenShift 后，安装 efk 的时候会报错，其中一个报错是在安装界面看到的
+建议将 v2 目录和 manifest 目录都删除后重新同步，不然后面导入的时候可能也会有报错。
 
-```
-Failed
-Bundle unpacking failed. Reason: DeadlineExceeded, and Message: Job was active longer than specified deadline
-```
-
-检索这个报错后，从官方的一个 solution 里面有所发现：https://access.redhat.com/solutions/6459071
-
-官方给出的故障原因解释：The cause is not 100% known but a possible theory is the first time the operator bundle was pulled down from the marketplace, the extract job failed (probably due to an issue accessing the remote image, etc.) and corrupted the configmap. Therefore, the operator manifest was most likely corrupt. Once that happens, any repeat install attempts to use the same job and configmap to install another instance of the operator (i.e. in another namespace) will fail.
-
-说大概率是我最开始离线 pull 的时候就有问题，从而导致这里安装也会有问题，不过按这个 solution 的方案尝试解决也未能成功，也有可能是我的操作方法不太对。
-
-**最终的解决方案**：
-
-
-
-
+不过从我的实际遭遇来看，即使导入的时候报错了也可以在镜像仓库中正常的看到那些导入的镜像，但是至于后面会不会有其他坑不确定，请自行斟酌。
 
 
 
@@ -667,11 +629,7 @@ error: unable to copy layer sha256:ed6ee657d49e14dc574507ea575b857343d444d423231
 
 A：
 
-最好还是删掉重新离线试试吧
-
-
-
-
+最好还是删掉重新离线试试吧，猜测是官方的那个镜像存在一点问题或者是网络传输过程中出现了一些问题。
 
 
 
@@ -679,15 +637,4 @@ A：
 
 - https://docs.openshift.com/container-platform/4.8/operators/admin/olm-restricted-networks.html#olm-pruning-index-image_olm-restricted-networks
 - [Operator installation fails with "Bundle unpacking failed. Reason: DeadlineExceeded, and Message: Job was active longer than specified deadline"](https://access.redhat.com/solutions/6459071)
-- [olm访问私有仓库的配置文档](https://docs.openshift.com/container-platform/4.8/operators/admin/olm-managing-custom-catalogs.html#olm-accessing-images-private-registries_olm-managing-custom-catalogs)
-=======
-
-```
-
-
-
-
->>>>>>> ac2967f693fe8dd0dd57ae63a8dfc8718dad6756
-
-
 
