@@ -1,4 +1,4 @@
-# Deployment UPI  (未成功版本，仅供参考)
+# Deployment UPI  (未完成文档，仅供参考部分内容)
 
 > 本章为之前参考操作的一个记录，很多地方有坑，仅供参考，以及Troubleshooting部分可以参考一些排错操作。
 

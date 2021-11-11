@@ -26,11 +26,14 @@ E-mail: shine_fire@outlook.com
 
 
 
-
+For additional information about the OOM killer please see the following artciles:
+\- [How to troubleshoot Out of memory (OOM) killer in Red Hat Enterprise Linux?](https://access.redhat.com/solutions/2612861)
+\- [How does the OOM-Killer select a task to kill?](https://access.redhat.com/solutions/66458)
 
 ## References
 
 - [内存溢出百度百科](https://baike.baidu.com/item/%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA/1430777)
 - [Wiki Out of memory](https://en.wikipedia.org/wiki/Out_of_memory)
-- 
+- [How to troubleshoot Out of memory (OOM) killer in Red Hat Enterprise Linux?](https://access.redhat.com/solutions/2612861)
+- [How does the OOM-Killer select a task to kill?](https://access.redhat.com/solutions/66458)
 

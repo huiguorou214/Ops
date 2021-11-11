@@ -42,11 +42,23 @@ SFTP为SSH的一部分，在SSH（RedHat Linux中为OPENSSH）软件包中，已
 
 ### SFTP服务分离配置
 
-修改`sshd_config`默认配置文件注释掉sftp行，这样相当于把sshd服务默认启用的sftp服务关闭了。
+修改`sshd_config`默认配置文件注释掉 `Subsystem sftp` 行，这样相当于把sshd服务默认启用的sftp服务关闭了。
 
 ```bash
 [root@rhel76-ori ssh]# grep sftp /etc/ssh/sshd_config
 # Subsystem     sftp    /usr/libexec/openssh/sftp-server
+```
+
+
+
+另外如果之前有在配置文件开启 Match 选项相关的行，也一并全部注释，例如：
+
+```
+#Match User anoncvs
+#   X11Forwarding no
+#   AllowTcpForwarding no
+#   PermitTTY no
+#   ForceCommand cvs server
 ```
 
 
@@ -166,7 +178,71 @@ sftp>
 
 上面的基本分离方案，用的是直接使用root用户来登录sftp的，但是在实际使用中，基本上是另外使用专门的用户来进行sftp传输数据的。
 
+创建一个sftp专用的group
 
+```bash
+~]# groupadd sftpgrp
+```
+
+
+
+创建一个sftp专用用户
+
+```bash
+~]# useradd apt -s /sbin/nologin -G sftpgrp
+~]# id apt
+uid=1000(apt) gid=1000(apt) groups=1000(apt),1001(sftpgrp)
+~]# passwd apt
+```
+
+说明：登录的shell设置为 nologin 则可以让用户无法进行 ssh 登录
+
+
+
+修改 /etc/ssh/sftpd_config，添加下面的行
+
+```
+Match Group sftpgrp
+    ForceCommand internal-sftp
+    AllowTcpForwarding no
+    X11Forwarding no
+    #ChrootDirectory /sftp/%u
+```
+
+参数说明：ChrootDirectory 如果没有特别需求可以注释掉，如果想创建一个专用于sftp传输的目录，可以这样设置后再设置好目录权限
+
+
+
+重启服务
+
+```bash
+[root@rhel76-ori ssh]# systemctl restart sftpd.service
+[root@rhel76-ori ssh]# systemctl status sftpd.service
+● sftpd.service - sftp server daemon
+   Loaded: loaded (/etc/systemd/system/sftpd.service; disabled; vendor preset: disabled)
+   Active: active (running) since Wed 2021-11-10 10:22:25 CST; 7s ago
+     Docs: man:sshd(8)
+           man:sshd_config(5)
+ Main PID: 32774 (sftpd)
+   CGroup: /system.slice/sftpd.service
+           └─32774 /usr/sbin/sftpd -f /etc/ssh/sftpd_config
+
+Nov 10 10:22:25 rhel76-ori.shinefire.com systemd[1]: Starting sftp server daemon...
+Nov 10 10:22:25 rhel76-ori.shinefire.com sftpd[32774]: Server listening on 0.0.0.0 port 8022.
+Nov 10 10:22:25 rhel76-ori.shinefire.com sftpd[32774]: Server listening on :: port 8022.
+Nov 10 10:22:25 rhel76-ori.shinefire.com systemd[1]: Started sftp server daemon.
+```
+
+
+
+另外登录一台机器进行sftp登录测试
+
+```bash
+[root@nuc ~]# sftp -P 8022 apt@192.168.31.196
+apt@192.168.31.196's password:
+Connected to 192.168.31.196.
+sftp>
+```
 
 
 
@@ -200,9 +276,31 @@ sftp>
 
 
 
+## Troubleshooting
 
+Q1：
 
+在修改了 systemd 配置文件后，启动服务遇到报错：
 
+```.
+-- Unit sftpd.service has begun starting up.
+Nov 09 21:59:54 rhel76-ori.shinefire.com sftpd[10021]: error: Bind to port 8022 on 0.0.0.0 failed: Permission denied.
+Nov 09 21:59:54 rhel76-ori.shinefire.com sftpd[10021]: error: Bind to port 8022 on :: failed: Permission denied.
+Nov 09 21:59:54 rhel76-ori.shinefire.com sftpd[10021]: fatal: Cannot bind any address.
+Nov 09 21:59:54 rhel76-ori.shinefire.com systemd[1]: sftpd.service: main process exited, code=exited, status=255/n/a
+Nov 09 21:59:54 rhel76-ori.shinefire.com systemd[1]: Failed to start sftp server daemon.
+-- Subject: Unit sftpd.service has failed
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+--
+-- Unit sftpd.service has failed.
+```
+
+A1：
+
+这个是因为开启了 SELinux 所导致的，解决办法可以直接关掉 SELinux
+
+参考：https://blog.csdn.net/default7/article/details/103592139
 
 
 
@@ -211,5 +309,5 @@ sftp>
 ## References
 
 - [说说SSH、SCP和SFTP的那些事儿](https://cloud.tencent.com/developer/article/1042350)
-- 
+- [CentOS修改Ssh端口提示error: Bind to port 2271 on 0.0.0.0 failed: Permission denied.](https://blog.csdn.net/default7/article/details/103592139)
 

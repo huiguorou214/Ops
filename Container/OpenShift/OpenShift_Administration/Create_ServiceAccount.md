@@ -65,3 +65,8 @@ eyJhbGciOiJSUzI1NiIsImtpZCI6IkpUbVRwczhHVWhoT3otZURxcEZTVUJvZ2tJNENlYlZXV3dqUXpX
 
 记录查看到的 token 这一长串字符提供给开发人员调用 API 使用即可
 
+
+
+## 其他说明
+
+关于 ServiceAccount ，如果删除了 namespace 的话，会一起把 namespace 内的所有 ServiceAccount 一并删除。
