@@ -234,6 +234,7 @@ mountOptions:
 - parameters.server：指定提供NFS共享存储的服务器地址
 - parameters.share：指定共享路径
 - reclaimPolicy：指定回收策略，pvc删除后保留则是`Retain`，pvc 删除后也一并删除则是`Delete`
+- mountOptions.nfsvers：这个默认用的是4.1版本，这个需要根据实际情况进行调整，比如你的 NFS Server 如果最高就只支持v3的话，这个就必须要修改为3，否则在后面创建 pvc 时会因为 mount 失败从而导致 Pending。使用此命令可以检查 NFS Server 所兼容的版本：` rpcinfo -p NFS_Server_IP`
 
 
 
