@@ -6,3 +6,13 @@
 
 2021年会努力完善很多方面的笔记，定期更新，谢谢支持！
 
+
+
+E-mail：shine_fire@outlook.com
+
+GitHub：https://github.com/shine-fire
+
+Blog：http://shinefire.cn （预计2021年底开通）
+
+
+
