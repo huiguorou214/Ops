@@ -10,7 +10,7 @@ OpenShift：4.8.12
 
 ## 安装 OpenShift Elasticsearch Operator
 
-### 文字说明步骤
+### 安装步骤文字说明
 
 1. In the OpenShift Container Platform web console, click **Operators** → **OperatorHub**.
 2. Choose **OpenShift Elasticsearch Operator** from the list of available Operators, and click **Install**.
@@ -31,7 +31,7 @@ OpenShift：4.8.12
 
 ### 图形操作步骤
 
-Console界面检查
+进入到 OperatorHub 界面
 
 ![image-20211109114836856](pictures/image-20211109114836856.png)
 
@@ -46,6 +46,154 @@ Console界面检查
 点击"Install"进行安装，点击"Installed Operators"查看安装结果，等待状态变成"Succeeded"即可
 
 ![image-20211111163921748](pictures/image-20211111163921748.png)
+
+
+
+
+
+## 安装 Red Hat OpenShift Logging Operator
+
+### 安装步骤文字说明
+
+1. In the OpenShift Container Platform web console, click **Operators** → **OperatorHub**.
+
+2. Choose **Red Hat OpenShift Logging** from the list of available Operators, and click **Install**.
+
+3. Ensure that the **A specific namespace on the cluster** is selected under **Installation Mode**.
+
+4. Ensure that **Operator recommended namespace** is **openshift-logging** under **Installed Namespace**.
+
+5. Select **Enable operator recommended cluster monitoring on this namespace**.
+
+   This option sets the `openshift.io/cluster-monitoring: "true"` label in the Namespace object. You must select this option to ensure that cluster monitoring scrapes the `openshift-logging` namespace.
+
+6. Select **stable-5.x** as the **Update Channel**.
+
+7. Select an **Approval Strategy**.
+
+   - The **Automatic** strategy allows Operator Lifecycle Manager (OLM) to automatically update the Operator when a new version is available.
+   - The **Manual** strategy requires a user with appropriate credentials to approve the Operator update.
+
+8. Click **Install**.
+
+9. Verify that the Red Hat OpenShift Logging Operator installed by switching to the **Operators** → **Installed Operators** page.
+
+10. Ensure that **Red Hat OpenShift Logging** is listed in the **openshift-logging** project with a **Status** of **Succeeded**.
+
+    If the Operator does not appear as installed, to troubleshoot further:
+
+    - Switch to the **Operators** → **Installed Operators** page and inspect the **Status** column for any errors or failures.
+    - Switch to the **Workloads** → **Pods** page and check the logs in any pods in the `openshift-logging` project that are reporting issues.
+
+
+
+### 图形操作步骤
+
+进入到 OperatorHub 界面
+
+![image-20211109114836856](pictures/image-20211109114836856.png)
+
+
+
+点击 "Red Hat OpenShift Logging" 进去点击 "Install"，进入安装选项界面勾选下面这些选项
+
+![image-20211115171046188](pictures/image-20211115171046188.png)
+
+
+
+点击 "Install" 进行 operator 的安装，等待安装完成
+
+![image-20211115171137938](pictures/image-20211115171137938.png)
+
+
+
+也可以在 "Installed Operators" 界面查看结果
+
+![image-20211115171209384](pictures/image-20211115171209384.png)
+
+
+
+## 创建 OpenShift Logging 实例
+
+### 安装步骤
+
+切换到 **Administration** → **Custom Resource Definitions** 界面，点击 **ClusterLogging**
+
+![image-20211115190749462](pictures/image-20211115190749462.png)
+
+
+
+到详情页之后，再到 **Action** 菜单栏选择 **View Instances**
+
+![image-20211115202544665](pictures/image-20211115202544665.png)
+
+
+
+点击 **Create ClusterLogging**
+
+![image-20211115202709672](pictures/image-20211115202709672.png)
+
+
+
+在编辑器代码框填写代码，示例：
+
+```yaml
+apiVersion: "logging.openshift.io/v1"
+kind: "ClusterLogging"
+metadata:
+  name: "instance" 
+  namespace: "openshift-logging"
+spec:
+  managementState: "Managed"  
+  logStore:
+    type: "elasticsearch"  
+    retentionPolicy: 
+      application:
+        maxAge: 1d
+      infra:
+        maxAge: 7d
+      audit:
+        maxAge: 7d
+    elasticsearch:
+      nodeCount: 3 
+      storage:
+        storageClassName: "nfs-csi" 
+        size: 200G
+      resources: 
+          limits:
+            memory: "16Gi"
+          requests:
+            memory: "16Gi"
+      proxy: 
+        resources:
+          limits:
+            memory: 256Mi
+          requests:
+            memory: 256Mi
+      redundancyPolicy: "SingleRedundancy"
+  visualization:
+    type: "kibana"  
+    kibana:
+      replicas: 1
+  collection:
+    logs:
+      type: "fluentd"  
+      fluentd: {}
+```
+
+部分参数说明：
+
+
+
+代码填写完毕后点击 **Create** 创建，这将创建 OpenShift Logging 组件、Elasticsearch 自定义资源和组件以及 Kibana 界面。
+
+![image-20211115203751730](pictures/image-20211115203751730.png)
+
+
+
+### 检查安装结果
+
+切换到 **Workloads** → **Pods** 界面
 
 
 
@@ -132,3 +280,50 @@ Bundle unpacking failed. Reason: DeadlineExceeded, and Message: Job was
 
 
 bundle contents have not yet been persisted to installplan status
+
+
+
+Q3：
+
+创建 Instance 的时候，遇到不能正常启动的情况
+
+```bash
+~]# oc get po
+NAME                                            READY   STATUS             RESTARTS   AGE
+cluster-logging-operator-57f8bbc44-gm78r        1/1     Running            0          4h25m
+elasticsearch-cdm-eewku96v-1-5968656988-269pf   1/2     CrashLoopBackOff   5          6m13s
+elasticsearch-cdm-eewku96v-2-597bb54db7-s2r59   1/2     CrashLoopBackOff   5          6m12s
+elasticsearch-cdm-eewku96v-3-6d4d47ff4b-rfncd   1/2     CrashLoopBackOff   5          6m11s
+fluentd-4wctn                                   0/2     Init:0/1           4          6m12s
+fluentd-tdx4r                                   0/2     Init:0/1           4          6m12s
+fluentd-vkl78                                   0/2     Init:0/1           4          6m12s
+kibana-7f74b8cb89-492sb                         2/2     Running            0          6m10s
+```
+
+A：
+
+发现 elasticsearch cdm 的 pod 里面有如下一些报错
+
+```
+[2021-11-15 13:33:11,135][INFO ][container.run            ] Removing unnecessary JKS files
+[2021-11-15 13:33:11,142][INFO ][container.run            ] Checking if Elasticsearch is ready
+[2021-11-15 13:33:11,142][INFO ][container.run            ] Setting heap dump location /elasticsearch/persistent/heapdump.hprof
+[2021-11-15 13:33:11,145][INFO ][container.run            ] ES_JAVA_OPTS: ' -Xms128m -Xmx128m -XX:HeapDumpPath=/elasticsearch/persistent/heapdump.hprof -Xlog:gc*,gc+age=trace,safepoint:file=/elasticsearch/persistent/elasticsearch/logs/gc.log:utctime,pid,tags:filecount=8,filesize=64m -XX:ErrorFile=/elasticsearch/persistent/elasticsearch/logs/error.log -Djdk.tls.ephemeralDHKeySize=2048 -Des.cgroups.hierarchy.override=/ -Dlog4j2.configurationFile=/usr/share/java/elasticsearch/config/log4j2.properties'
+mkdir: cannot create directory '/elasticsearch/persistent/elasticsearch': Permission denied
+```
+
+另外又 describe 看了一些 pod ，发现又提示了我节点内存不够的报错
+
+```
+Events:
+  Type     Reason            Age                From               Message
+  ----     ------            ----               ----               -------
+  Warning  FailedScheduling  8m11s              default-scheduler  0/3 nodes are available: 3 pod has unbound immediate PersistentVolumeClaims.
+  Warning  FailedScheduling  4m5s               default-scheduler  0/3 nodes are available: 1 Insufficient cpu, 3 Insufficient memory.
+  Warning  FailedScheduling  5s (x9 over 8m9s)  default-scheduler  0/3 nodes are available: 3 Insufficient memory.
+```
+
+估计原因大概就是因为这个造成的，但是我后来有尝试过降低 request 的资源数量，也似乎没能够成功。暂时放一下，还没时间继续测试，要先睡觉...
+
+和官方这个solution描述的极其类似：https://access.redhat.com/solutions/4431881
+
