@@ -280,3 +280,13 @@ pvc-911344a9-1365-4de1-8552-19d10a0ac080   10Gi       RWX            Retain     
 
 说明：通过删除 pvc 后，检查 pv 的结果可以发现，pv 处于 `Released` 状态，依旧保留。
 
+
+
+## Q&A
+
+Q1：
+
+如果在创建 csi nfs 的 controller 和 node 的时候，部分 pod 分配到 master 节点上的话，会导致 pv 也会创建在 master 节点上，让 master 节点尝试去 NFS Server 去挂载共享存储之类的吗？因为 master 节点并不会连通 NAS 网络所以如果会有这种可能性的话，那就可能会导致异常问题出现了。
+
+A：
+
