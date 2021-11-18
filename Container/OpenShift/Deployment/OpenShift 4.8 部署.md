@@ -2,11 +2,19 @@
 
 
 
-## Introduction
+## 文档说明
 
 本文档为离线环境的 UPI（UserProvisioned Infrastructure）安装
 
 Installing a user-provisioned bare metal cluster on a restricted network
+
+
+
+### 环境说明
+
+最开始写的时候规划是三个 master 节点，两个 worker 节点，后面因为自己的环境资源有限，就改成只使用三个 master 节点来进行安装。
+
+另外我最开始是尝试使用 VMware Workstations 上面部署虚拟机来进行安装集群的，但是最后死活就是无法成功，在安装后集群后 authentication 这个 clusteroperator 一直不能成功，导致无法正吃使用。多次尝试无果后，换成了 VirtualBox 来提供虚拟机进行安装一次就成功了，我猜测可能跟两个软件的底层网络架构有关系，但也仅限于我自己的猜测而已，毕竟网上很多朋友是用 VMware Workstations 来提供虚拟机也一样能够成功，原因没有查明，并且也没打算再花时间去折腾安装了，所以如果你在使用 VMware Workstations 的时候如果遇到了此类问题，也可以考虑替换成 VirtualBox 试试
 
 
 
@@ -59,13 +67,11 @@ Installing a user-provisioned bare metal cluster on a restricted network
 | 软件名称              | 软件包名                             |
 | --------------------- | ------------------------------------ |
 | RHEL8.4 DVD           | rhel-server-8.4-x86_64-dvd.iso       |
-|                       |                                      |
 | 镜像仓库软件          | harbor-offline-installer-v2.3.2.tgz  |
 | Registry仓库镜像      | ocp4.tar.gz                          |
 | Openshift客户端oc命令 | openshift-client-linux-4.8.12.tar.gz |
 | Openshift安装程序     | openshift-install                    |
-| CoreOS引导光盘        |                                      |
-|                       |                                      |
+| CoreOS引导光盘        | rhcos-4.8.2-x86_64-live.x86_64.iso   |
 
 资源获取说明：
 
@@ -74,7 +80,7 @@ Installing a user-provisioned bare metal cluster on a restricted network
 - ocp4.tar.gz：需要自己离线官方的镜像并保存使用，后面离线 OpenShift 镜像的步骤中会说明
 - openshift-client-linux-4.8.12.tar.gz：官网下载
 - openshift-install：官方直接下载（之前试了使用自己生成的那种方式，但是在后面安装的时候会有问题，安装集群的时候去仓库拉镜像的时候应该会被这个 openshi-install 影响，到它这个指定的那个仓库去拉取镜像从而导致安装集群失败）
-- 
+- rhcos-4.8.2-x86_64-live.x86_64.iso：官网下载，iso的版本不一定会每个小版本都更新的，下载小于安装版本的就行了。
 
 
 
@@ -198,7 +204,7 @@ api.ocp4.shinefire.com. 0       IN      A       192.168.31.160
 
 公共的 HTTP 服务主要是用于为后续安装各节点时，提供 ignition 文件，coreOS 的依赖文件等
 
-
+安装过程（略）
 
 
 
@@ -1045,9 +1051,13 @@ $ sudo coreos-installer install /dev/sda --copy-network --ignition-url http://19
 
 ### 清理 bootstrap 节点
 
-#### 注释haproxy 
+#### 注释haproxy
+
+haproxy 可以在配置文件里面注释掉或者删除关于 bootstrap 的负载条目，操作略过。
 
 #### 关闭该机器
+
+关闭或者删除该机器，后续已经不会再需要 bootstrap 机器。
 
 
 
