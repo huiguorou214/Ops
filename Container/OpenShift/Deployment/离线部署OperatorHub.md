@@ -8,8 +8,6 @@
 
 本指南描述了在受限网络中启用 OLM 所需的流程：
 
-本指南描述了在受限网络中启用 OLM 所需的流程：
-
 - 为 OLM 禁用默认远程 OperatorHub 源。
 - 使用有完全互联网访问的服务器来创建并推送 OperatorHub 内容的本地镜像到镜像 registry。
 - 将 OLM 配置为从内网镜像 registry 上的本地源而不是默认的远程源安装和管理 Operator。
@@ -29,7 +27,7 @@ https://access.redhat.com/articles/4740011
 
 
 
-## 修改离线环境的配置
+## 一、修改离线环境的配置
 
 由于内网环境默认的market-place不可用，所以需要做一些修改替换成内部的。
 
@@ -57,7 +55,7 @@ From the **Administration** → **Cluster Settings** → **Global Configuration*
 
 
 
-## 裁剪 index image
+## 二、获取operator清单
 
 对于 Operator ，官方会提供一个 index image，这个 image 里面包含了当前来源的所有 operator ，然后就可以根据这个 image 来完整的离线所有 operators，或者裁剪这个镜像，离线部分自己需要的 operator。
 
@@ -156,34 +154,9 @@ Login Succeeded!
    
 4. 在您执行 `podman run` 命令的终端会话中，按 **Ctrl** 和 **C** 停止容器进程。
 
-
-
-## 离线部署 OperatorHub
-
-
-
-思路说明：
-
-1. skopeo同步官方的operator-index到本地镜像仓库中，例如：
-
-   ```bash
-   skopeo copy \
-       docker://registry.redhat.io/redhat/redhat-operator-index:v4.8 \
-       docker://quay.io/wangzheng422/operator-catalog:redhat-${var_major_version}-$var_date
-
-2. 如果有定制需求就对官方的index image进行裁剪，因为默认会有很多，如果你不想要那么多就裁剪掉一些，参考：https://docs.openshift.com/container-platform/4.8/operators/admin/olm-restricted-networks.html#olm-pruning-index-image_olm-restricted-networks
-
-3. 使用 `oc image mirror` 命令将 index image 离线到本地镜像仓库中
-
-4. 使用 `oc adm catalog mirror` 命令将所有镜像离线到本地
-
-5. 将离线好的文件打包带到离线环境中
-
-6. 再次使用 `oc adm catalog mirror` 命令将打包好的文件导入到离线环境中
-
  
 
-## 离线 index image 到本地镜像仓库
+## 三、离线 index image 到本地镜像仓库
 
 裁剪镜像
 
@@ -193,6 +166,8 @@ Login Succeeded!
    -p elasticsearch-operator,cluster-logging \
    -t registry.ocp4.shinefire.com:8443/my-operator/my-operator-index:v4.8-202111
 ```
+
+**说明：**这里的 -p 参数指定的 name 就是从上一步骤中从 index image 获取到的所有软件包名称提取的，指定多个时用逗号分隔开即可
 
 推送镜像到镜像仓库
 
@@ -212,7 +187,7 @@ Storing signatures
 
 
 
-## 离线指定的 Operator 到本地目录下
+## 四、离线指定的 Operator 到本地目录下
 
 创建保存用的目录
 
@@ -288,7 +263,7 @@ manifests-my-operator-index-1636424076  v2
 
 
 
-## 导入离线的 Operator 到离线环境中
+## 五、导入离线的 Operator 到离线环境中
 
 将之前离线后打包后的目录，上传到离线环境里可以访问内部镜像仓库的节点中，我这里是直接上传到了 bastion 机器中。
 
@@ -330,13 +305,16 @@ Login Succeeded
 
 
 
-导入离线包到内部镜像仓库中
+导入离线包到内部镜像仓库中，***待补充***
 
 ```bash
 ~]# cd /efk-mirror/
 ~]# oc adm catalog mirror \
     file://efk-mirror/my-operator/my-operator-index:v4.8-202111 \
-    registry.ocp4.shinefire.com:8443/efk-mirror
+    registry.ocp4.shinefire.com:8443/efk-mirror \
+    -a /root/registry-secret.json \
+    --insecure \
+    --index-filter-by-os='linux/amd64'
 info: Mirroring completed in 1m19.09s (680.7kB/s)
 no digest mapping available for file://efk-mirror/my-operator/my-operator-index:v4.8-202111, skip writing to ImageContentSourcePolicy
 wrote mirroring manifests to manifests-my-operator/my-operator-index-1636602048
@@ -363,7 +341,7 @@ manifests-my-operator/
 
 
 
-## 配置自定义的 operatorhub
+## 六、配置自定义的 operatorhub
 
 ### 修改 catalogSource.yaml
 
@@ -471,46 +449,7 @@ master-3.ocp4.shinefire.com   Ready,SchedulingDisabled   master,worker   3d19h  
 
 
 
-## 离线指定的 Operator 到本地目录下
-
-这个和离线 OpenShift4 安装镜像比较类似，需要先找一台能够联网的机器，指定需要的版本的 index 镜像，然后程序会根据 index 镜像中的镜像清单，一个个的离线到本地目录中，就可以打包用于后续放入到离线环境中导入到离线的 OpenShift 环境中使用了。
-
-创建保存用的目录
-
-```bash
-[root@mirror-ocp ~]# mkdir -p /operatorhub/
-```
-
-使用 oc 命令离线所有的官方镜像，这个要等很久才会开始，先不要着急...
-
-```bash
-oc adm catalog mirror -a /root/pull-secret.json \
-registry.redhat.io/redhat/redhat-operator-index:v4.8 \
-file:///operatorhub \
---insecure \
---index-filter-by-os='linux/amd64' \
---max-components=5
-```
-
-命令执行后的输出示例：
-
-```bash
-[root@mirror-ocp ~]# oc adm catalog mirror \
-> registry.redhat.io/redhat/redhat-operator-index:v4.8 \
-> file:///operatorhub/redhat-operators -a /root/pull-secret.json \
-> --insecure \
-> --index-filter-by-os='linux/amd64'
-src image has index label for database path: /database/index.db
-using database path mapping: /database/index.db:/tmp/612318678
-W1018 20:12:16.187983    3260 manifest.go:442] Chose linux/amd64 manifest from the manifest list.
-wrote database to /tmp/612318678
-using database at: /tmp/612318678/index.db
-...
-```
-
-
-
-### 从 index image 中创建 catalog
+### 创建 CatalogSource 资源对象
 
 创建一个 CatalogSource 类型的对象来引用 index image 资源。
 
@@ -525,8 +464,6 @@ metadata:
 spec:
   image: registry.ocp4.shinefire.com:8443/efk-mirror/efk-mirror-my-operator-my-operator-index:v4.8-202111
   sourceType: grpc
-  secrets:
-  - "my-registry"
   displayName: My Operator Catalog
   publisher: redhat
 ```
@@ -535,7 +472,6 @@ spec:
 
 - metadata.namespace：如果要设置为全局的，则使用 openshift-marketplace ，否则将限定在某一个指定的 ns 中使用
 - spec.image：用默认的即可，从离线后的文件导入到镜像仓库中，会自动生成这么一个 index image 
-- spec.secrets：这个字段一定要进行额外添加，并且把前面创建的 secret name 加入这里来做个指向，这样才可以在后面正常的使用这个 catalogsource
 - spec.displayName：显示的名称，这个可以根据实际需要定义即可
 - spec.publisher：发行商，这是个可选项，不过建议加上比较好一点，我这里就直接填了 redhat 官方
 
