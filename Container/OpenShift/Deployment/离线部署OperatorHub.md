@@ -132,7 +132,7 @@ Login Succeeded!
    $ grpcurl -plaintext localhost:50051 api.Registry/ListPackages > packages.out
    ```
 
-3. 检查 `package.out` 文件，确定要保留在此列表中的哪个软件包名称。例如：
+3. 检查 `package.out` 文件内容，来查找需要使用的 operator。例如：
 
    **软件包列表片断示例**
 
@@ -151,6 +151,80 @@ Login Succeeded!
    }
    ...
    ```
+   
+   当前 openshift 4.8 版本所有 operator 名称完整版：
+   
+   ```bash
+   [root@mirror-ocp ~]# grep name packages.out
+     "name": "3scale-operator"
+     "name": "advanced-cluster-management"
+     "name": "amq-broker"
+     "name": "amq-broker-lts"
+     "name": "amq-broker-rhel8"
+     "name": "amq-online"
+     "name": "amq-streams"
+     "name": "amq7-cert-manager-operator"
+     "name": "amq7-interconnect-operator"
+     "name": "ansible-automation-platform-operator"
+     "name": "apicast-operator"
+     "name": "awx-resource-operator"
+     "name": "businessautomation-operator"
+     "name": "cincinnati-operator"
+     "name": "cluster-kube-descheduler-operator"
+     "name": "cluster-logging"
+     "name": "clusterresourceoverride"
+     "name": "codeready-workspaces"
+     "name": "codeready-workspaces2"
+     "name": "compliance-operator"
+     "name": "container-security-operator"
+     "name": "costmanagement-metrics-operator"
+     "name": "cryostat-operator"
+     "name": "datagrid"
+     "name": "devworkspace-operator"
+     "name": "eap"
+     "name": "elasticsearch-operator"
+     "name": "file-integrity-operator"
+     "name": "fuse-apicurito"
+     "name": "fuse-console"
+     "name": "fuse-online"
+     "name": "gatekeeper-operator-product"
+     "name": "integration-operator"
+     "name": "jaeger-product"
+     "name": "jws-operator"
+     "name": "kiali-ossm"
+     "name": "klusterlet-product"
+     "name": "kubernetes-nmstate-operator"
+     "name": "kubevirt-hyperconverged"
+     "name": "local-storage-operator"
+     "name": "metering-ocp"
+     "name": "mtc-operator"
+     "name": "mtv-operator"
+     "name": "nfd"
+     "name": "ocs-operator"
+     "name": "openshift-gitops-operator"
+     "name": "openshift-jenkins-operator"
+     "name": "openshift-pipelines-operator-rh"
+     "name": "performance-addon-operator"
+     "name": "poison-pill-manager"
+     "name": "ptp-operator"
+     "name": "quay-bridge-operator"
+     "name": "quay-operator"
+     "name": "red-hat-camel-k"
+     "name": "rh-service-binding-operator"
+     "name": "rhacs-operator"
+     "name": "rhmtv-operator"
+     "name": "rhpam-kogito-operator"
+     "name": "rhsso-operator"
+     "name": "sandboxed-containers-operator"
+     "name": "serverless-operator"
+     "name": "service-registry-operator"
+     "name": "servicemeshoperator"
+     "name": "skupper-operator"
+     "name": "sriov-network-operator"
+     "name": "submariner"
+     "name": "vertical-pod-autoscaler"
+     "name": "web-terminal"
+     "name": "windows-machine-config-operator"
    
 4. 在您执行 `podman run` 命令的终端会话中，按 **Ctrl** 和 **C** 停止容器进程。
 
@@ -490,7 +564,9 @@ my-operator-catalog-24pnr               1/1     Running   0          32s
 
 
 
-检查结果
+### 检查导入结果
+
+检查命令
 
 ```bash
 ~]# oc get pods -n openshift-marketplace
@@ -566,6 +642,88 @@ error: unable to copy layer sha256:ed6ee657d49e14dc574507ea575b857343d444d423231
 A：
 
 最好还是删掉重新离线试试吧，猜测是官方的那个镜像存在一点问题或者是网络传输过程中出现了一些问题。
+
+
+
+Q3：离线了指定的一些operator导入到离线环境时，遇到了一些问题，存在一些image无法写入imagecontentsourcePolicy的问题
+
+![image-20211124104427935](pictures/image-20211124104427935.png)
+
+```
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-cainjector:v1.5.4, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/strimzi/operator:0.13.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-webhook:v1.4.2, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-cainjector:v1.4.2, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-webhook:v1.6.1, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-cainjector:v1.6.1, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/keycloak/keycloak-operator:12.0.3, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jooholee/nfs-provisioner-operator:0.0.3, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/strimzi/operator:0.12.1, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-webhook:v1.6.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/keycloak/keycloak-operator:10.0.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/keycloak/keycloak-operator:11.0.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-controller:v1.4.2, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-cainjector:v1.4.4, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/strimzi/cluster-operator:0.11.1, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index:v4.8-202111, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/opstree/redis-operator:v0.4.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jooholee/nfs-provisioner-operator:0.0.2, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/opstree/redis-operator:v0.3.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/gitlab-org/gl-openshift/gitlab-runner-operator/gitlab-runner-operator:v1.1.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/opstree/redis-operator:v0.5.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/keycloak/keycloak-operator:13.0.1, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/keycloak/keycloak-operator:13.0.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/keycloak/keycloak-operator:8.0.2, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-controller:v1.5.3, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-webhook:v1.5.4, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-cainjector:v1.4.1, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/keycloak/keycloak-operator:12.0.1, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/opstree/redis-operator:latest, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-webhook:v1.5.3, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-cainjector:v1.5.3, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/keycloak/keycloak-operator:15.0.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-webhook:v1.4.1, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-cainjector:v1.6.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-controller:v1.6.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/strimzi/cluster-operator:0.11.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/keycloak/keycloak-operator:15.0.1, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-controller:v1.4.1, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-controller:v1.4.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-webhook:v1.4.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/keycloak/keycloak-operator:8.0.1, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/opstree/redis-operator:v0.2, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/keycloak/keycloak-operator:15.0.2, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-controller:v1.5.4, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-webhook:v1.4.4, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-controller:v1.4.4, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-controller:v1.6.1, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-controller:v1.4.3, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/opstree/redis-operator:v0.8.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/keycloak/keycloak-operator:9.0.2, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/opstree/redis-operator:v0.6.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/strimzi/operator:0.12.2, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/keycloak/keycloak-operator:9.0.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/kubebuilder/kube-rbac-proxy:v0.5.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-cainjector:v1.4.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-webhook:v1.4.3, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/keycloak/keycloak-operator:7.0.1, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/jetstack/cert-manager-cainjector:v1.4.3, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/strimzi/operator:0.14.0, skip writing to ImageContentSourcePolicy
+no digest mapping available for file://community-operator/my-operator/community-operator-index/keycloak/keycloak-operator:14.0.0, skip writing to ImageContentSourcePolicy
+wrote mirroring manifests to manifests-my-operator/community-operator-index-1637720538
+```
+
+A：
+
+Red Hat Bugzilla – Bug 1910399：https://bugzilla.redhat.com/show_bug.cgi?id=1910399
+
+
+
+
+
+
+
+
 
 
 
