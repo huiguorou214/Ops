@@ -18,7 +18,6 @@ Installing a user-provisioned bare metal cluster on a restricted network
 
 
 
-
 ## 一、Architecture
 
 ### Host List
