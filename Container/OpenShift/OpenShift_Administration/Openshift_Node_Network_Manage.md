@@ -363,8 +363,6 @@ Connection to master-1.ocp4.shinefire.com closed by remote host.
 
 
 
-
-
 ## References
 
 - https://docs.openshift.com/container-platform/4.8/virt/node_network/virt-updating-node-network-config.html#virt-example-nmstate-multiple-interfaces_virt-updating-node-network-config

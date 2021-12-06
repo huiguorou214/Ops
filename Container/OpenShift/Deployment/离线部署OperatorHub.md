@@ -73,12 +73,6 @@ From the **Administration** → **Cluster Settings** → **Global Configuration*
 - opm：1.12.3+
 - grpcurl
 
-**注意**：必须要在能够使用 podman 的机器上进行，因为 opm 工具需要使用到 podman 去进行操作，否则会报错：
-
-```
-Error: error pulling image: . exec: "podman": executable file not found in $PATH
-```
-
 
 
 ### 裁剪 image
@@ -241,7 +235,12 @@ Login Succeeded!
    -t registry.ocp4.shinefire.com:8443/my-operator/my-operator-index:v4.8-202111
 ```
 
-**说明：**这里的 -p 参数指定的 name 就是从上一步骤中从 index image 获取到的所有软件包名称提取的，指定多个时用逗号分隔开即可
+**说明：**
+
+- 这里的 -p 参数指定的 name 就是从上一步骤中从 index image 获取到的所有软件包名称提取的，指定多个时用逗号分隔开即可
+- 如果系统默认并没有安装 podman 的话，需要用 `-c` 参数指定容器工具，详情可以查看帮助文档，否则会遇到报错：`Error: error pulling image: . exec: "podman": executable file not found in $PATH`
+
+
 
 推送镜像到镜像仓库
 

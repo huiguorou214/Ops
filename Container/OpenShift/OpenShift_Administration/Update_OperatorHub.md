@@ -63,7 +63,7 @@ opm index add \
     --tag <registry>/<namespace>/<existing_index_image>:<tag>
 ```
 
-
+**注意：**由于此步骤一般在离线环境中进行，但是这一步会需要使用到一个 `quay.io/operator-framework/upstream-opm-builder` 的 container image 来构建新的镜像，所以需要提前离线该 container image 并导入到操作机器中。
 
 以添加新导入的 kubernetes-nmstate-operator 的 bundle 为例，命令如下
 
@@ -75,11 +75,10 @@ opm index add \
     -c podman
 ```
 
-> 注意：
->
-> --tag 指定的新的 index image 的 tag ，自定义命名即可，建议可以考虑使用当前日期来命名
->
-> -c 选项指定与容器镜像交互的工具，如果当前系统中安装的是docker就指定docker，podman就指定podman，建议添加此参数，实际测试如果没有添加此参数在某些环境下会报错无法成功构建新的镜像
+参数说明：
+
+- --tag 指定的新的 index image 的 tag ，自定义命名即可，建议可以考虑使用当前日期来命名；
+- -c 选项指定与容器镜像交互的工具，如果当前系统中安装的是docker就指定docker，podman就指定podman，建议添加此参数，**实际测试中发现如果没有添加此参数在某些环境下会报错无法成功构建新的镜像**；
 
 
 
@@ -245,3 +244,8 @@ elasticsearch-operator                  16h
 
 ![image-20211130093752992](pictures/image-20211130093752992.png)
 
+
+
+## Reference
+
+- https://docs.openshift.com/container-platform/4.8/operators/admin/olm-restricted-networks.html#olm-updating-index-image_olm-restricted-networks

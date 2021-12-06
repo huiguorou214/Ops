@@ -8,6 +8,8 @@ Blog:https://github.com/shine-fire/Ops_Notes
 E-mail:shine_fire@outlook.com
 ```
 
+
+
 ## Inventory文件
 
 ### Inventory 参数的说明
@@ -56,7 +58,15 @@ ansible_python_interpreter
 localhost     ansible_connection=local
 ```
 
+
+
 ## 动态Inventory
 
-## 参考文献
+
+
+
+
+## References
+
+
 

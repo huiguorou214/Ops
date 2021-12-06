@@ -12,6 +12,34 @@ E-mail: shine_fire@outlook.com
 
 
 
+## Introduction
+
+### Features
+
+(Not all features are supported by all templates)
+
+- **Multiple formats / templates:**
+  - Fancy HTML (`--template html_fancy`), as seen in the screenshots above.
+  - Fancy HTML Split (`--template html_fancy_split`), with each host's details in a separate file (for large number of hosts).
+  - CSV (`--template csv`), the trustworthy and flexible comma-separated format.
+  - JSON (`--template json`), a dump of all facts in JSON format.
+  - Markdown (`--template markdown`), useful for copy-pasting into Wiki's and such.
+  - Markdown Split (`--template markdown_split`), with each host's details in a seperate file (for large number of hosts).
+  - SQL (`--template sql`), for importing host facts into a (My)SQL database.
+  - Plain Text table (`--template txt_table`), for the console gurus.
+  - and of course, any custom template you're willing to make.
+- Host overview and detailed host information.
+- Host and group variables.
+- Gathered host facts and manual custom facts.
+- Adding and extending facts of existing hosts and manually adding entirely new hosts.
+- Custom columns
+
+
+
+
+
+
+
 ## Install ansible_cmdb
 
 使用pip install可以直接安装
