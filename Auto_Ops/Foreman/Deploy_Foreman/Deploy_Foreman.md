@@ -1,4 +1,4 @@
-# Foreman Deployment
+Foreman Deployment
 
 > 本章主要介绍如何快速的部署一个Foreman上手使用，适用于个人或者公司平时的补丁管理。
 

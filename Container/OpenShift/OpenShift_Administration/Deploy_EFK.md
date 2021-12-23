@@ -197,6 +197,25 @@ spec:
 
 
 
+命令查看 pod，输出类似下面：
+
+```bash
+[root@bastion ~]# oc get po
+NAME                                            READY   STATUS    RESTARTS   AGE
+cluster-logging-operator-f57978cb7-4c5j4        1/1     Running   0          21h
+elasticsearch-cdm-zlmxh6pq-1-5f849cd6d6-7vmd4   2/2     Running   76         6h17m
+elasticsearch-cdm-zlmxh6pq-2-5df8b8fb6c-89lcx   2/2     Running   76         6h17m
+elasticsearch-cdm-zlmxh6pq-3-76f4b7684-bhlgm    2/2     Running   76         6h17m
+fluentd-76fcv                                   2/2     Running   0          6h17m
+fluentd-8h7m9                                   2/2     Running   0          6h17m
+fluentd-bllbw                                   2/2     Running   0          6h17m
+fluentd-kp4j2                                   2/2     Running   0          6h17m
+fluentd-ld2jt                                   2/2     Running   0          6h17m
+fluentd-qz9vp                                   2/2     Running   0          6h17m
+fluentd-zfs6l                                   2/2     Running   0          6h17m
+kibana-6b79cccf97-rmqrj                         2/2     Running   0          6h17m
+```
+
 
 
 

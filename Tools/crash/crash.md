@@ -46,7 +46,7 @@ yum install kernel-debuginfo-$(uname -r)
 debuginfo-install kernel
 ```
 
-**说明：**这一步执行会自动安装一个debug的包，这个包的所在 repository 是 `rhel-7-server-debug-rpms` ，还挺大的，所以如果想要安装的话，还需要订阅这个源或者拿到这个源里面所提供的安装包。
+**说明：**这一步执行会自动安装一个debug的包，这个包的所在 repository 是 `rhel-7-server-debug-rpms` ，还挺大的，所以如果想要安装的话，还需要订阅这个源或者拿到这个源里面所提供的rpm包用 yum 来安装会比较方便。
 
 
 
