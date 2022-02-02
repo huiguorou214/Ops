@@ -629,7 +629,7 @@ udp6       0      0 ::1:323                 :::*                                
 
 
 
-## 配置Bastion节点
+## 七、配置Bastion节点
 
 ### 部署oc命令
 
@@ -959,7 +959,7 @@ worker.ign         100%[=============================>]   1.68K  --.-KB/s    in 
 
 
 
-## 安装 RHCOS 启动 OCP 集群
+## 八、安装 RHCOS 启动 OCP 集群
 
 ### 监控部署
 
@@ -1046,7 +1046,7 @@ $ sudo coreos-installer install /dev/sda --copy-network --ignition-url http://19
 
 
 
-## 安装后的一些操作
+## 九、安装后的一些操作
 
 ### 清理 bootstrap 节点
 
