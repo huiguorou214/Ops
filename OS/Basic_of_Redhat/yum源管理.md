@@ -1,4 +1,4 @@
-#  Yum源
+#  Yum源管理
 
 
  > 本章节主要是介绍了yum源相关的各方面使用，例如如何使用yum来管理软件包，如何创建yum源，自建yum仓库等
@@ -30,7 +30,6 @@ subscription-manager register --username=用户名  --password=密码  --auto-at
 - **使用 createrepo 创建依赖关系**
 
   *具体可以参考下面的同步yum源中所提到的内容*
-
 
 ## 三、同步yum源
 
