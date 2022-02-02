@@ -25,10 +25,11 @@ Inspection Template
   configure (total != 0)
 - [x] /etc/fstab
 - [x] time server configure
-- [x] sshd_config
+- [ ] sshd_config
 - [x] password policy
 - [x] user login lock policy
-- [x] auditd configure and enable
+- [ ] auditd configure and enable
+- [x] history size config
 
 
 
@@ -47,7 +48,7 @@ Inspection Template
   - [ ] net.ipv4.conf.all.accept_redirects = 0
   - [ ] net.ipv4.conf.default.accept_redirects = 0
   - [ ] net.ipv4.icmp_ignore_bogus_error_responses = 1
-- [ ] file permission
+- [x] file permission 
   - [ ] /etc/crontab
   - [ ] /etc/securetty
   - [ ] /boot/grub2/grub.cfg
@@ -78,7 +79,7 @@ Inspection Template
   - [x] kdump
   - [x] ntpd
   - [x] chronyd
-  - [ ] irqbalance  中断平衡服务
+  - [x] irqbalance  中断平衡服务，Irqbalance服务用于在多处理器环境中合理分配调整硬件中断平衡从而达到优化系统性能以及节能的目录。如果在多处理器环境（包括单个多核CPU环境）中，应该打开这个服务。但是如果服务器只有一个处理器（单个单核处理器），应该关闭这个服务Irqbalance
 - [x] disable services
   - [x] firewalld  防火墙
   - [x] iptables  防火墙
@@ -86,11 +87,11 @@ Inspection Template
   - [x] cups  打印服务
   - [x] postfix  
   - [x] pcscd  smart卡登录服务
-  - [x] smartd
+  - [x] smartd 是磁盘的一个特性，用于检测磁盘故障并且报告给操作系统。通常认为这个服务会带来潜在的低级别安全风险。如果服务器磁盘支持并打开了SMART功能，可以考虑开启这个服务。虚拟机的话没必要。
   - [x] alsasound
   - [x] iscsitarget
   - [x] smb
-  - [x] acpid  acpi高级电源管理服务
+  - [x] acpid  acpi高级电源管理服务，虚拟机没必要吧？
   - [x] cpuspeed  cpu节能工具
   - [x] xinetd  rhel6的
   - [x] ypbind
@@ -158,8 +159,6 @@ Inspection Template
 
 
 
-
-
 ### OS Basic Config
 
 - /etc/fstab
@@ -185,7 +184,7 @@ Inspection Template
   - disabled
 
     ```bash
-  systemctl list-unit-files | grep firewalld | awk '{print $2}'
+    systemctl list-unit-files | grep firewalld | awk '{print $2}'
     ```
 
 - zombie process
@@ -298,11 +297,15 @@ Inspection Template
 
 ### About Error Log
 
+日志文件：
+
 - messages
 
   ```bash
   grep -Ei '(error|warn|block|fail|flood|lockup|bug|stuck|kill|respond|try|return|wait|fragment|abort|mce)'  /var/log/messages*
   ```
+
+  
 
 - dmesg
 
@@ -311,6 +314,14 @@ Inspection Template
   ```
   
   RHEL7新增`-T`参数可以用来更好的显示日志的时间。
+  
+  
+  
+- /var/log/secure
+
+- /var/log/boot.log
+
+- /var/log/mcelog
 
 
 
@@ -353,3 +364,4 @@ cp /etc/passwd ${save_dir}/
 - 关于一些基础配置内容，可以考虑使用template，将一些基础信息先填写成key，然后直接用变量直接var，这样就可以直接看到一些内容的值；
 - 关于日志信息，则直接使用命令，通过关键字将需要的日志内容过滤出来；
 - 
+
