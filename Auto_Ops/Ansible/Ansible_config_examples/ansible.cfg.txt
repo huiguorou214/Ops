@@ -1,4 +1,4 @@
-# config file for ansible 
+# config file for ansible
 
 > https://ansible.com/
 
@@ -6,7 +6,9 @@
 
 [TOC]
 
-## Simple Template for Openshift 
+
+
+## Simple Template for Openshift
 
 ```
 # config file for ansible -- http://ansible.com/
@@ -585,3 +587,4 @@ control_path = %(directory)s/%%h-%%r	## 配合ControlPersist使用，设置长�
 # Set how many context lines to show in diff
 # context = 3
 ```
+
