@@ -246,8 +246,6 @@ sftp>
 
 
 
-
-
 ### SFTP数据目录
 
 
@@ -273,6 +271,48 @@ sftp>
 
 
 ### SFTP主机黑白名单配置
+
+
+
+### 拒绝所有用户SSH但部分用户可以使用SFTP
+
+刚好有客户有这个需求：本地和云端服务器进行sftp传输，但是不能进行任何的ssh连接。
+
+开始因为想到：sftp作为一个子服务，它的开启依赖于ssh服务，因此不能从本质上关闭ssh服务而只开启sftp服务。觉得只能设置只想使用sftp的用户，让他们无法进行SSH。
+
+所以觉得这个需求应该无法实现，只能使用vsftpd之类的工具来代替。
+
+
+
+解决方案：
+
+首先还是得做sftp分离，在进行完毕sftp分离的基础上，再通过防火墙阻断两端的ssh传输，sftp传输则通过分离的sftpd服务来进行。
+
+sftpd服务这边的ssh连接，则通过 sftpd_config (源sshd_config copy修改) 配置文件里面进行配置 **AllowUsers** 和 **DenyUsers** 来控制哪些用户能否进行ssh连接。
+
+另外需要注意**仅用于sftp连接的用户需要将 shell 修改为 /sbin/nologin** ，这样这些本应该被允许进行 ssh 连接的用户也无法进行 ssh 连接而只能进行 sftp 连接。
+
+
+
+配置示例如下：
+
+修改 /etc/ssh/sftpd_config，添加下面的第一行来控制哪些用户可以登录
+
+```
+AllowGroups sftpgrp
+
+Match Group sftpgrp
+    ForceCommand internal-sftp
+    AllowTcpForwarding no
+    X11Forwarding no
+    #ChrootDirectory /sftp/%u
+```
+
+
+
+
+
+
 
 
 
