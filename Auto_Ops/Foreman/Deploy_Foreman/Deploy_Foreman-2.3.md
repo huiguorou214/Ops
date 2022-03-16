@@ -1,10 +1,10 @@
 # Foreman Deployment
 
 > 本章主要介绍如何快速的部署一个Foreman上手使用，适用于个人或者公司平时的补丁管理。
+>
+> 本文档为之前基于 2.3 版本所写，已不再更新此文档。
 
-
-
-**Author**
+## Author
 
 ```
 Name:Shinefire
@@ -14,52 +14,30 @@ E-mail:shine_fire@outlook.com
 
 [TOC]
 
-## 介绍
+## 一、Introduction
 
 Foreman-katello  是一个All in one的开源项目，整合了很多其他开源模块用于实现服务器的集中管理，他从上游repo获取内容后，部署到各种平台上，可以支持虚拟化，物理机，公有云上的操作系统的统一管理。
 
 
 
-## 环境规划
+## 二、Enviroment Planning
 
 ### 版本说明
 
-| Items           | Var                                     |
-| --------------- | --------------------------------------- |
-| OS Version      | CentOS Stream 8（7版本马上要被抛弃...） |
-| Foreman Version | 3.1（当前的稳定版本）                   |
+| Items           | Var   |      |
+| --------------- | ----- | ---- |
+| OS Version      | RHEL7 |      |
+| Foreman Version | 2.3   |      |
+|                 |       |      |
 
-
-
-### 硬件要求
-
-默认安装的需求：
-
-- 4GB memory
-- 2GB disk space
-
-另外需要根据实际环境来确定当前具体的资源需求，可以参考以下：
-
-| profile           | 受控机器数量范围 | 建议最小内存 | 建议最小CPU |
-| ----------------- | ---------------- | ------------ | ----------- |
-| default           | up-to 5000       | 20G          | 4           |
-| medium            | 5000 to 10000    | 32G          | 8           |
-| large             | 10000 to 20000   | 64G          | 16          |
-| extra-large       | 20000 to 40000   | 128G         | 32          |
-| extra-extra-large | 40000 to 60000   | 256G         | 48          |
-
-
-
-### 浏览器版本推荐
+### 浏览器版本推荐：
 
 - Google Chrome 54 or higher
 - Microsoft Edge
 - Microsoft Internet Explorer 10 or higher
 - Mozilla Firefox 49 or higher
 
-> 其他版本的浏览器官方未进行测试，不保证都能正常运行
-
-
+> 其他版本的浏览器未测试，不保证都能正常运行
 
 ### 防火墙
 
@@ -79,83 +57,46 @@ Protect your Foreman environment by blocking all unnecessary and unused ports.
 
 > Ports indicated with ***** are running by default on a Foreman all-in-one installation and should be open.
 
-
-
 ### YUM源
 
-对于 CentOS Stream 8，安装Foreman平台之前需要准备好以下YUM源：
+对于RHEL7，安装Foreman平台之前需要准备好以下YUM源：
 
-- CentOS Stream 8 - AppStream
-- CentOS Stream 8 - BaseOS
-- Foreman 3.1
-- Foreman plugins 3.1
-- Puppet 6 Repository el 8 - x86_64
-
-
-
-## 使用Foreman Installer部署
-
-### 系统环境准备
-
-#### 关闭firewalld
-
-```bash
-~]# systemctl disable firewalld.service --now
-Removed /etc/systemd/system/multi-user.target.wants/firewalld.service.
-Removed /etc/systemd/system/dbus-org.fedoraproject.FirewallD1.service.
-```
+- rhel-7-server-optional-rpms
+- rhel-server-rhscl-7-rpms
+- EPEL (Extra Packages for Enterprise Linux) 
+- Foreman repositories（可以在官方选择需要的版本，安装相应rpm后会自动配置一个源 https://yum.theforeman.org/releases/）
+- puppet repository（在官网安装一下这个软件包会自动配置yum源：https://yum.puppet.com/puppet6-release-el-7.noarch.rpm）
 
 
 
-#### 关闭SELinux
+## 三、使用Foreman Installer部署
 
-```bash
-~]# vim /etc/selinux/config
-SELINUX=disabled
-~]# reboot
-```
+### 3.1 系统环境准备
 
 
 
 #### 配置YUM源
 
-#### 配置最新的基础源
-
-略过基础源的配置，用系统默认的或者配置国内的镜像源即可。
-
-更新系统补丁
-
-```bash
-~]# dnf update -y
-~]# reboot
-```
-
-
-
 ##### 安装在线repos（适用于可以连通外网的环境）
 
-配置 puppet 仓库
-
-``` bash
-~]# dnf -y install https://yum.puppet.com/puppet6-release-el-8.noarch.rpm
-```
-
-开启 Ruby 2.7 module
-
+下面这一段不管：
 ```bash
-~]# dnf module reset ruby
-~]# dnf module enable ruby:2.7
+# yum install -y yum-plugin-fastestmirror
+# yum -y localinstall https://yum.theforeman.org/releases/2.0/el7/x86_64/foreman-release.rpm
+# yum -y localinstall https://fedorapeople.org/groups/katello/releases/yum/3.15/katello/el7/x86_64/katello-repos-latest.rpm
+# yum -y localinstall https://yum.puppet.com/puppet6-release-el-7.noarch.rpm
+# yum -y localinstall https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+# yum -y install foreman-release-scl
 ```
 
 
-
-配置 Foreman 仓库
-
-```bash
-~]# dnf -y install https://yum.theforeman.org/releases/3.1/el8/x86_64/foreman-release.rpm
 ```
-
-
+curl -o /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
+yum -y install https://yum.puppet.com/puppet6-release-el-7.noarch.rpm
+yum -y install http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+yum -y install https://yum.theforeman.org/releases/2.0/el7/x86_64/foreman-release.rpm
+yum -y install foreman-release-scl
+```
 
 ##### 配置内网YUM源
 
@@ -166,103 +107,65 @@ SELINUX=disabled
 #### 检查加的repos
 
 ```bash
-~]# dnf repolist
-repo id                               repo name
-appstream                             CentOS Stream 8 - AppStream
-baseos                                CentOS Stream 8 - BaseOS
-extras                                CentOS Stream 8 - Extras
-foreman                               Foreman 3.1
-foreman-plugins                       Foreman plugins 3.1
-puppet6                               Puppet 6 Repository el 8 - x86_64
+]# yum repolist
+Loaded plugins: product-id, search-disabled-repos, subscription-manager
+
+This system is not registered with an entitlement server. You can use subscription-manager to register.
+
+repo id                      repo name                                   status
+epel                         CentOS-7Server - EPEL                       13,594
+foreman                      Foreman 2.3                                    730
+puppet6                      Puppet 6 Repository el 7 - x86_64                8
+rhel-7-server-optional-rpms  rhel-7-server-optional-rpms                  5,198
+rhel-7-server-rpms           rhel-7-server-rpms                           5,652
+rhel-server-rhscl-7-rpms     rhel-server-rhscl-7-rpms                     8,214
+repolist: 33,396
 ```
-
-
 
 #### 配置FQDN
 
 ```bash
-~]# hostnamectl set-hostname foreman-server.shinefire.com
-```
-
-
-
-#### 配置 hosts
-
-```bash
-~]# vi /etc/hosts
+# vim /etc/hosts
 127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
-192.168.21.111  foreman-server.shinefire.com  foreman-server
+
+192.168.31.111  tfm.example.com
 ```
-
-
-
-#### 配置DNS
-
-略过，网络配置的时候通常会进行配置DNS了。
-
-
 
 #### 配置时间同步
 
 ```bash
-~]# systemctl enable chronyd --now
-Created symlink /etc/systemd/system/multi-user.target.wants/chronyd.service → /usr/lib/systemd/system/chronyd.service.
-~]# timedatectl set-timezone Asia/Shanghai
+# yum install -y chrony
+# systemctl enable chronyd
+# systemctl start chronyd
+# timedatectl set-timezone Asia/Shanghai
 ```
 
 
 
-### 安装必需软件包
+### 3.2 使用foreman-installer进行安装
 
-
-
-
-
-### 使用foreman-installer进行安装
-
-#### 安装需要的软件包
-
-安装 foreman-installer
+安装foreman-installer
 
 ```bash
  ~]# yum -y install foreman-installer
 ```
 
-#### 启动instller安装
-
-##### 安装选项说明
-
-
-
-##### 安装命令
+启动instller安装
 
 ```bash
-~]# foreman-installer
-2022-03-04 23:47:44 [NOTICE] [root] Loading installer configuration. This will take some time.
-2022-03-04 23:47:48 [NOTICE] [root] Running installer with log based terminal output at level NOTICE.
-2022-03-04 23:47:48 [NOTICE] [root] Use -l to set the terminal output log level to ERROR, WARN, NOTICE, INFO, or DEBUG. See --full-help for definitions.
-2022-03-04 23:47:50 [NOTICE] [configure] Starting system configuration.
-2022-03-04 23:51:20 [NOTICE] [configure] 250 configuration steps out of 1357 steps complete.
-2022-03-04 23:52:05 [NOTICE] [configure] 500 configuration steps out of 1359 steps complete.
-2022-03-04 23:52:34 [NOTICE] [configure] 750 configuration steps out of 1371 steps complete.
-2022-03-04 23:57:00 [NOTICE] [configure] 1000 configuration steps out of 1385 steps complete.
-2022-03-04 23:58:23 [NOTICE] [configure] 1250 configuration steps out of 1385 steps complete.
-2022-03-04 23:58:34 [NOTICE] [configure] System configuration has finished.
-Executing: foreman-rake upgrade:run
+# foreman-installer
+Preparing installation Done
   Success!
   * Foreman is running at https://foreman-server.shinefire.com
-      Initial credentials are admin / EWqPjxTNXheNpyxr
+      Initial credentials are admin / DYEHYBg3ufJt9CiP
   * Foreman Proxy is running at https://foreman-server.shinefire.com:8443
-
   The full log is at /var/log/foreman-installer/foreman.log
 ```
 
-等待提示Success!安装成功，记录默认的admin**管理员密码**，例如上面的`EWqPjxTNXheNpyxr`，可以在提示的路径中查看安装日志。
+等待提示Success!安装成功，记录默认的admin**管理员密码**，例如上面的`DYEHYBg3ufJt9CiP`，可以在提示的路径中查看安装日志。
 
-
-
-## WEB端登陆使用
+## 四、WEB端登陆使用
 
 浏览器中输入IP或者域名即可访问，
 
@@ -340,48 +243,6 @@ Content View需要promote到不同的环境中以便关联不同类型的客户�
 不同的linux服务器注册到foreman的时候，通过activation key来进行区分并绑定到不同的发布内容上， 再foreman中需要先创建好各个不同的activation key，并绑定到对应的资源，这样机器注册时指需要选择不同的activation key即可。 
 
 ![1591773520184](Deploy_Foreman.assets/1591773520184.png)
-
-
-
-## 附录
-
-### 附录1 获取官方errata
-
-**CentOS Errata**
-
-可以参考这个网站提供的（这个网站应该是个个人开源项目，具体的运作方式后面我再仔细了解一下）：https://cefs.steve-meier.de/ 
-
-最新的 centos errata 下载地址：https://cefs.steve-meier.de/errata.latest.xml.bz2
-
-
-
-**RHEL Errata**
-
-红帽官方的可以在官方提供的资源中获取：https://www.redhat.com/security/data/oval/v2/
-
-> 不同的版本所需的errata，可以在官网中自行选择。
-
-
-
-### 附录2 重装Foreman
-
-
-
-
-
-## Q&A
-
-Q1：
-
-如果最开始使用 foreman-installer 的时候，没有指定启用的一些插件，后面在使用过程中要怎么再进行添加呢？
-
-A：
-
-
-
-
-
-
 
 
 

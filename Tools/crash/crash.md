@@ -158,11 +158,62 @@ Segmentation fault
 
 
 
+
+
+
+
 ### 常用命令
 
 
 
 
+
+
+
+## Q&A
+
+Q1：
+
+有时候用 dis 出来的结果是带了文件行数的
+
+```
+crash> dis -rl ffffffff81053b65 | tail -n 7
+/usr/src/debug/kernel-2.6.32-131.0.15.el6/linux-2.6.32-131.0.15.el6.x86_64/kernel/sched.c: 3942
+0xffffffff81053b50 <find_busiest_group+1456>:   mov    -0x120(%rbp),%r8
+0xffffffff81053b57 <find_busiest_group+1463>:   mov    -0x58(%rbp),%rax
+0xffffffff81053b5b <find_busiest_group+1467>:   xor    %edx,%edx
+0xffffffff81053b5d <find_busiest_group+1469>:   mov    0x8(%r8),%ecx
+0xffffffff81053b61 <find_busiest_group+1473>:   shl    $0xa,%rax
+0xffffffff81053b65 <find_busiest_group+1477>:   div    %rcx
+```
+
+但是有的情况下，dis 打出来的结果是没有说明哪个文件和具体行数的（以下为一个第三方的module导致的panic的分析）
+
+```
+crash> dis -rl ffffffffc069e28c
+0xffffffffc069e250 <q_getname>: nopl   0x0(%rax,%rax,1) [FTRACE NOP]
+0xffffffffc069e255 <q_getname+5>:       push   %rbp
+0xffffffffc069e256 <q_getname+6>:       mov    $0x1000,%edx
+0xffffffffc069e25b <q_getname+11>:      mov    $0xd0,%esi
+0xffffffffc069e260 <q_getname+16>:      mov    %rsp,%rbp
+0xffffffffc069e263 <q_getname+19>:      push   %r13
+0xffffffffc069e265 <q_getname+21>:      push   %r12
+0xffffffffc069e267 <q_getname+23>:      mov    %rdi,%r12
+0xffffffffc069e26a <q_getname+26>:      mov    -0x2991abd1(%rip),%rdi        # 0xffffffff96d836a0
+0xffffffffc069e271 <q_getname+33>:      push   %rbx
+0xffffffffc069e272 <q_getname+34>:      callq  0xffffffff95df7430 <kmem_cache_alloc_trace>
+0xffffffffc069e277 <q_getname+39>:      test   %rax,%rax
+0xffffffffc069e27a <q_getname+42>:      mov    %rax,%rbx
+0xffffffffc069e27d <q_getname+45>:      je     0xffffffffc069e3d0 <q_getname+384>
+0xffffffffc069e283 <q_getname+51>:      mov    %gs:0x10e30,%rax
+0xffffffffc069e28c <q_getname+60>:      cmpq   $0xffffffffffffffff,-0x3fb8(%rax)
+```
+
+这是为什么呢？
+
+
+
+​                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
 
 
 

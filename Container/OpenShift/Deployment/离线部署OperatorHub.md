@@ -282,7 +282,7 @@ file:///efk-mirror \
 ```
 
 
-注意：pull-secret.json 需要配置好访问红帽官网和本地镜像仓库的账户，或者像之前一样提前两边登录应该也可以，暂未验证。
+注意：pull-secret.json 需要配置好访问红帽官网和本地镜像仓库的账户，或者像之前一样提前两边登录应该也可以，暂未验证，可自行测试。
 
 
 
@@ -338,6 +338,8 @@ manifests-my-operator-index-1636424076  v2
 
 ## 五、导入离线的 Operator 到离线环境中
 
+### Bastion 中导入 Operator
+
 将之前离线后打包后的目录，上传到离线环境里可以访问内部镜像仓库的节点中，我这里是直接上传到了 bastion 机器中。
 
 ```bash
@@ -370,7 +372,7 @@ Login Succeeded
 
 
 
-在内部镜像仓库创建一个用于报错离线好的 operator 的 project
+在内部镜像仓库创建一个用于保存离线好的 operator 的 project
 
 这里创建了一个名为`efk-mirror`的 Project
 
@@ -411,6 +413,97 @@ manifests-my-operator/
 
 1 directory, 3 files
 ```
+
+
+
+### Windows 中导入 Operator 测试
+
+背景说明：
+
+因为客户有这个需求，他们想方便一点直接在 Windows 中导入 Operator，但是他们在尝试使用在 windows 中导入 Operator 的时候遇到个问题，猜测是路径格式不一致导致：
+
+![image-20220213152742244](pictures/image-20220213152742244.png)
+
+于是我只能尝试测试一下 Windows 中的 Operator 导入，看是否能够成功，或者能否复现这个问题。
+
+
+
+#### Windows 安装 oc client
+
+不详细写了，可以看官方文档，下面 copy 了一下：
+
+You can install the OpenShift CLI (`oc`) binary on Windows by using the following procedure.
+
+Procedure
+
+1. Navigate to the [OpenShift Container Platform downloads page](https://access.redhat.com/downloads/content/290?extIdCarryOver=true&sc_cid=701f2000001OH74AAG) on the Red Hat Customer Portal.
+
+2. Select the appropriate version in the **Version** drop-down menu.
+
+3. Click **Download Now** next to the **OpenShift v4.6 Windows Client** entry and save the file.
+
+4. Unzip the archive with a ZIP program.
+
+5. Move the `oc` binary to a directory that is on your `PATH`.
+
+   To check your `PATH`, open the command prompt and execute the following command:
+
+   ```
+   C:\> path
+   ```
+
+After you install the OpenShift CLI, it is available using the `oc` command:
+
+```
+C:\> oc <command>
+```
+
+
+
+#### 离线 Operator
+
+这个跟上面离线指定 Operator 到本地目录下还是一样的步骤
+
+
+
+创建保存用的目录
+
+```bash
+~]# mkdir /windows_import_operator && cd /windows_import_operator
+```
+
+
+
+离线下载 Operator 用于导入测试，就随便用之前弄好的 index image 即可。
+
+```bash
+oc adm catalog mirror \
+-a /root/pull-secret.json \
+registry.ocp4.shinefire.com:8443/my-operator/kubernetes-nmstate-operator:v4.8-202111 \
+file:///windows_import_operator \
+--insecure \
+--index-filter-by-os='linux/amd64'
+```
+
+
+
+#### Windows 导入 Operator
+
+先在 Harbor 中创建一个测试使用的 project
+
+
+
+Error 预警！！！
+
+我使用的 Windows Server 2016 来进行测试，然后发现将离线好的目录拷贝到 Windows 的过程中，会遇到文件名过长导致无法正常拷贝进去的问题，因为 Windows Server 默认不带压缩软件的，所以就想偷懒直接用未压缩的目录了，但是不行。
+
+尝试先压缩，再拷贝进 Windows 后解压，再进行导入，发现也不行，猜测也是和文件名过长有关系，解压的过程中就已经遇到了报错，解压后发现解压后的目录也出现了一些文件缺失的情况：
+
+![image-20220213160156252](pictures/image-20220213160156252.png)
+
+
+
+
 
 
 

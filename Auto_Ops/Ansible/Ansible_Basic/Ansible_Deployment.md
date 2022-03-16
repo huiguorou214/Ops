@@ -5,10 +5,12 @@
 ## Author
 
 ```
-Name:Shinefire
-Blog:https://github.com/shine-fire/Ops_Notes
-E-mail:shine_fire@outlook.com
+Name: Apt
+Blog: https://github.com/shine-fire/Ops_Notes
+E-mail: shine_fire@outlook.com
 ```
+
+
 
 ## 一、大纲
 
@@ -84,7 +86,7 @@ CentOS使用epel源即可，RHEL可以使用extras源和ansible源，在环境�
 2. 安装相关的rpm包
 
    ```bash
-   # yum install python2-pip python-devel gcc 
+   # yum install python2-pip python-devel gcc
    ```
 
 3. 升级pip

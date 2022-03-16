@@ -5,9 +5,9 @@
 ### Author
 
 ```txt
-Name:Shinefire
+Name: Apt
 Blog:
-E-mail:czy@clinux.cn
+E-mail: shine_fire@qq.com
 ```
 
 

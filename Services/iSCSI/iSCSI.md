@@ -165,7 +165,7 @@ E-mail:shine_fire@outlook.com
 9. 启动服务
 
    ```bash
-[root@iscsi ~]# systemctl enable target --now
+   [root@iscsi ~]# systemctl enable target --now
    ```
    
 9. 关闭/配置防火墙
@@ -275,4 +275,6 @@ node.session.auth.password = redhat
 
 - RHEL7配置iSCSI中，ACL那一步的作用于client的意义是什么？  参考： https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/storage_administration_guide/online-storage-management#target-setup-configure-acl 
 
-- 
+  
+
+

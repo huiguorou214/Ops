@@ -27,8 +27,6 @@ ELK主要是由3个开源项目组成的：elasticsearch，logstash，kibana
 
 
 
-
-
 ### ELK工作原理介绍
 
 如下图：Logstash收集AppServer产生的Log，并存放到ElasticSearch集群中，而Kibana则从ES集群中查询数据生成图表，再返回给Browser
