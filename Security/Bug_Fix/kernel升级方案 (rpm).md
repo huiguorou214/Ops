@@ -26,7 +26,7 @@
 2. 对tar包进行解压，例如解压后的路径为'/tmp/kernel_update'
 
    ```bash
-   [root@localhost ~]# ls /tmp/kernel_update
+   ~]# ls /tmp/kernel_update
    dracut-004-411.el6.noarch.rpm
    dracut-kernel-004-411.el6.noarch.rpm
    kernel-2.6.32-754.35.1.el6.x86_64.rpm
@@ -44,7 +44,7 @@
 3. 创建一个临时的本地yum repo文件，指定tar包解压后的路径
 
    ```bash
-   [root@localhost ~]# vim /etc/yum.repos.d/kernel_update.repo
+   ~]# vim /etc/yum.repos.d/kernel_update.repo
    [kernel_update]
    name=kernel_update
    baseurl=file:///tmp/kernel_update
@@ -55,20 +55,20 @@
 4. 清除yum缓存，使用repolist选项检查是否已经添加了新的本地kernel repo
 
    ```bash
-   [root@localhost ~]# yum clean all
-   [root@localhost ~]# yum repolist
+   ~]# yum clean all
+   ~]# yum repolist
    ```
 
 5. 记录当前kernel相关rpm包版本，在后面如果要回退了可能会用得上
 
    ```bash
-   [root@localhost ~]# rpm -qa | grep kernel*
+   ~]# rpm -qa | grep kernel*
    ```
 
 6. 执行'yum update'命令来指定新配置的临时yum源来升级内核，例：
 
    ```bash
-   [root@localhost ~]# yum update kernel-* --disablerepo=* --enablerepo=kernel_update
+   ~]# yum update kernel kernel-* --disablerepo=* --enablerepo=kernel_update
    ```
 
 7. 重启操作系统来加载新kernel的模块，如果时间不方便可以放在合适的时间窗口再进行重启操作。
@@ -76,16 +76,16 @@
 8. 执行`uname -r`命令检查内核升级是否成功
 
    ```bash
-   [root@localhost ~]# uname -r
+   ~]# uname -r
    2.6.32-754.35.1.el6.x86_64
    ```
 
 9. 删除临时配置的repo文件
 
    ```bash
-   [root@localhost ~]# rm -f /etc/yum.repos.d/kernel_update.repo
-   [root@localhost ~]# yum clean all
-   [root@localhost ~]# yum makecache
+   ~]# rm -f /etc/yum.repos.d/kernel_update.repo
+   ~]# yum clean all
+   ~]# yum makecache
    ```
 
 
@@ -94,19 +94,130 @@
 
 如果在升级之后，发现现有的业务因为升级而出现异常情况的话，可以通过下面的方法回退kernel。
 
+**注意**：使用这种回退机制有一个必要条件：当前使用的 yum 源里面需要能够安装旧版本的 rpm 包
+
+
+
+#### RHEL8
+
+1. 查看当前默认启动的kernel
+
+   ```bash
+   ~]# grubby --default-kernel
+   /boot/vmlinuz-4.18.0-348.20.1.el8_5.x86_64
+   ```
+
+2. 查看当前可选kernel
+
+   ```bash
+   ~]# ls -l /boot/vmlinuz-*
+   -rwxr-xr-x. 1 root root  9514352 Mar 21  2021 /boot/vmlinuz-0-rescue-e260cad3584649258040d1f99809a0a8
+   -rwxr-xr-x. 1 root root  9514352 Sep 23  2020 /boot/vmlinuz-4.18.0-240.el8.x86_64
+   -rwxr-xr-x. 1 root root 10218864 Mar  9 02:12 /boot/vmlinuz-4.18.0-348.20.1.el8_5.x86_64
+   ```
+
+3. 根据列出来的可选项选择升级前的kernel版本作为默认启动kernel
+
+   ```bash
+   ~]# grubby --set-default /boot/vmlinuz-4.18.0-240.el8.x86_64
+   The default is /boot/loader/entries/e260cad3584649258040d1f99809a0a8-4.18.0-240.el8.x86_64.conf with index 1 and kernel /boot/vmlinuz-4.18.0-240.el8.x86_64
+   ```
+
+4. 查看选择的默认启动kernel的index
+
+   ```bash
+   ~]# grubby --info /boot/vmlinuz-4.18.0-240.el8.x86_64
+   index=1
+   kernel="/boot/vmlinuz-4.18.0-240.el8.x86_64"
+   args="ro crashkernel=auto resume=/dev/mapper/rhel-swap rd.lvm.lv=rhel/root rd.lvm.lv=rhel/swap rhgb quiet $tuned_params"
+   root="/dev/mapper/rhel-root"
+   initrd="/boot/initramfs-4.18.0-240.el8.x86_64.img $tuned_initrd"
+   title="Red Hat Enterprise Linux (4.18.0-240.el8.x86_64) 8.3 (Ootpa)"
+   id="e260cad3584649258040d1f99809a0a8-4.18.0-240.el8.x86_64"
+   ```
+
+5. 修改 index
+
+   ```bash
+   ~]# grubby --set-default-index=1
+   The default is /boot/loader/entries/e260cad3584649258040d1f99809a0a8-4.18.0-240.el8.x86_64.conf with index 1 and kernel /boot/vmlinuz-4.18.0-240.el8.x86_64
+   ```
+
+6. 重启操作系统，检查重启后的内核版本是否符合预期
+
+7. 回退其他kernel相关的软件包
+
+   先使用`yum history list`命令查看yum的历史更新记录，如下图的结果中，可以简单判断上次更新kernel的历史ID号为 4
+
+   ```bash
+   ~]# dnf history list
+   Updating Subscription Management repositories.
+   Unable to read consumer identity
+   
+   This system is not registered to Red Hat Subscription Management. You can use subscription-manager to register.
+   
+   ID     | Command line                            | Date and time    | Action(s)      | Altered
+   ----------------------------------------------------------------------------------------------
+        4 | update kernel kernel-* --disablerepo=*  | 2022-03-21 10:07 | I, U           |    5
+        3 | -y install bash-completion.noarch       | 2022-03-21 10:06 | Install        |    5
+        2 | install -y vim createrepo               | 2022-03-21 10:04 | Install        |    7
+        1 |                                         | 2021-03-21 11:45 | Install        |  398 EE
+   ```
+
+   > yum history list结果说明
+   >
+   > 以ID:4的这次操作为例，Action(s)这一列表示发生了I(install)和U(update)的操作，涉及到的数量就是'Altered'这一列标出的4个包
+
+   可以使用`yum history info`命令来确认，示例如下：
+
+   ```bash
+   ~]# dnf history info 4
+   Updating Subscription Management repositories.
+   Unable to read consumer identity
+   
+   This system is not registered to Red Hat Subscription Management. You can use subscription-manager to register.
+   
+   Transaction ID : 4
+   Begin time     : Mon 21 Mar 2022 10:07:52 AM CST
+   Begin rpmdb    : 407:b229815325aa34df2adae5d6d255f135853a293e
+   End time       : Mon 21 Mar 2022 10:08:43 AM CST (51 seconds)
+   End rpmdb      : 410:b0f440719492fefa45c74f4174625b4a68c7e375
+   User           : root <root>
+   Return-Code    : Success
+   Releasever     : 8
+   Command Line   : update kernel kernel-* --disablerepo=* --enablerepo=kernel_update
+   Comment        :
+   Packages Altered:
+       Install  kernel-4.18.0-348.20.1.el8_5.x86_64            @kernel_update
+       Install  kernel-core-4.18.0-348.20.1.el8_5.x86_64       @kernel_update
+       Install  kernel-modules-4.18.0-348.20.1.el8_5.x86_64    @kernel_update
+       Upgrade  kernel-tools-4.18.0-348.20.1.el8_5.x86_64      @kernel_update
+       Upgraded kernel-tools-4.18.0-240.el8.x86_64             @@System
+       Upgrade  kernel-tools-libs-4.18.0-348.20.1.el8_5.x86_64 @kernel_update
+       Upgraded kernel-tools-libs-4.18.0-240.el8.x86_64        @@System
+   ```
+
+   确认是个ID执行了更新内核的操作后，使用`yum history undo`命令来回退操作
+
+   ```bash
+   ~]# dnf history undo 4
+   ```
+
+
+
 #### RHEL7
 
 1. 查看当前默认启动的kernel
 
    ```bash
-   [root@centos75-ori ~]# grub2-editenv list
+   ~]# grub2-editenv list
    saved_entry=CentOS Linux (3.10.0-1160.36.2.el7.x86_64) 7 (Core)
    ```
 
 2. 查看所有启动可选kernel
 
    ```bash
-   [root@centos75-ori ~]# cat /boot/grub2/grub.cfg | grep menuentry
+   ~]# cat /boot/grub2/grub.cfg | grep menuentry
    if [ x"${feature_menuentry_id}" = xy ]; then
      menuentry_id_option="--id"
      menuentry_id_option=""
@@ -119,8 +230,8 @@
 3. 根据列出来的可选项选择升级前的kernel版本作为默认启动kernel
 
    ```bash
-   [root@centos75-ori ~]# grub2-set-default 'CentOS Linux (3.10.0-862.el7.x86_64) 7 (Core)'
-   [root@centos75-ori ~]# grub2-editenv list
+   ~]# grub2-set-default 'CentOS Linux (3.10.0-862.el7.x86_64) 7 (Core)'
+   ~]# grub2-editenv list
    saved_entry=CentOS Linux (3.10.0-862.el7.x86_64) 7 (Core)
    ```
 
@@ -131,7 +242,7 @@
    先使用`yum history list`命令查看yum的历史更新记录，如下图的结果中，可以简单判断上次更新kernel的历史ID号为3
 
    ```bash
-   [root@localhost ~]# yum history list
+   ~]# yum history list
    Loaded plugins: product-id, security, subscription-manager
    This system is not registered to Red Hat Subscription Management. You can use subscription-manager to register.
    ID     | Login user               | Date and time    | Action(s)      | Altered
@@ -145,9 +256,9 @@
 
    > yum history list结果说明
    >
-   > 以ID:3的这次操作为例，Action(s)这一列表示发生了I(install)和U(update)的操作，涉及到的数量就是'Altered'这一列标出的4个包
+   > 以ID:3 的这次操作为例，Action(s)这一列表示发生了I(install)和U(update)的操作，涉及到的数量就是'Altered'这一列标出的4个包
    >
-   > 以ID:3的这次操作为例，Action(s)这一列表示发生了E(Erase)的操作，涉及到的数量就是'Altered'这一列标出的1个包
+   > 以ID:4 的这次操作为例，Action(s)这一列表示发生了E(Erase)的操作，涉及到的数量就是'Altered'这一列标出的1个包
 
    可以使用`yum history info`命令来确认，示例如下：
 
@@ -181,12 +292,10 @@
    确认是个ID执行了更新内核的操作后，使用`yum history undo`命令来回退操作
 
    ```bash
-   [root@localhost ~]# yum history undo 3
+   ~]# yum history undo 3
    ```
 
-   **注意**：使用这种回退机制有一个必要条件：当前使用的yum源里面需要能够安装旧版本的rpm包
-
-
+   
 
 #### RHEL6
 
@@ -201,7 +310,7 @@
 3. 移除新版本的kernel rpm
 
    ```bash
-   [root@localhost ~]# rpm -qa | grep kernel-
+   ~]# rpm -qa | grep kernel-
    kernel-firmware-2.6.32-754.35.1.el6.noarch
    kernel-2.6.32-504.el6.x86_64
    kernel-2.6.32-754.35.1.el6.x86_64
@@ -214,7 +323,7 @@
    先使用`yum history list`命令查看yum的历史更新记录，如下图的结果中，可以简单判断上次更新kernel的历史ID号为3
 
    ```bash
-   [root@localhost ~]# yum history list
+   ~]# yum history list
    Loaded plugins: product-id, security, subscription-manager
    This system is not registered to Red Hat Subscription Management. You can use subscription-manager to register.
    ID     | Login user               | Date and time    | Action(s)      | Altered
@@ -230,12 +339,12 @@
    >
    > 以ID:3的这次操作为例，Action(s)这一列表示发生了I(install)和U(update)的操作，涉及到的数量就是'Altered'这一列标出的4个包
    >
-   > 以ID:3的这次操作为例，Action(s)这一列表示发生了E(Erase)的操作，涉及到的数量就是'Altered'这一列标出的1个包
+   > 以ID:4的这次操作为例，Action(s)这一列表示发生了E(Erase)的操作，涉及到的数量就是'Altered'这一列标出的1个包
    
       可以使用`yum history info`命令来确认
    
    ```bash
-   [root@localhost ~]# yum history info 3
+   ~]# yum history info 3
    Loaded plugins: product-id, security, subscription-manager
    This system is not registered to Red Hat Subscription Management. You can use subscription-manager to register.
    Transaction ID : 3
@@ -264,12 +373,10 @@
    确认是个ID执行了更新内核的操作后，使用`yum history undo`命令来回退操作
    
    ```bash
-   [root@localhost ~]# yum history undo 3
+   ~]# yum history undo 3
    ```
    
-   **注意**：使用这种回退机制有一个必要条件：当前使用的yum源里面需要能够安装旧版本的rpm包
-
-
+   
 
 #### RHEL5
 
@@ -286,12 +393,12 @@ RHEL5版本的操作系统在回退时，与之后的版本有一些区别，因
 3. 移除新版本的kernel rpm，示例如下：
 
    ```bash
-   [root@localhost ~]# rpm -qa | grep kernel-
+   ~]# rpm -qa | grep kernel-
    kernel-firmware-2.6.32-754.35.1.el5.noarch
    kernel-2.6.32-504.el5.x86_64
    kernel-2.6.32-754.35.1.el5.x86_64
    dracut-kernel-004-411.el5.noarch
-   [root@localhost ~]# yum remove kernel-2.6.32-754.35.1.el5
+   ~]# yum remove kernel-2.6.32-754.35.1.el5
    ```
 
 4. 回退其他kernel相关的软件包
@@ -301,9 +408,7 @@ RHEL5版本的操作系统在回退时，与之后的版本有一些区别，因
    回退命令，以回退`kernel-headers`rpm包为例：
 
    ```bash
-   [root@localhost ~]# yum downgrade kernel-headers
+   ~]# yum downgrade kernel-headers
    ```
 
-   **注意**：使用这种回退机制有一个必要条件：当前使用的yum源里面需要能够安装旧版本的rpm包
-
- 
+    
