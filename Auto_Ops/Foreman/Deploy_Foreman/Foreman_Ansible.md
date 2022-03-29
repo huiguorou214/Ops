@@ -30,3 +30,10 @@ verify_certs = /etc/foreman-proxy/ssl_ca.pem
 
 
 
+
+
+
+
+## References
+
+- [Configuring Foreman to use Ansible](https://docs.theforeman.org/3.2/Configuring_Ansible/index-foreman-el.html)

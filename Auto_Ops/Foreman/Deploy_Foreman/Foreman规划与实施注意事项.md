@@ -16,7 +16,7 @@ Foreman Server 所部署在的环境，是需要重点考虑的一个因素。
 
 不过一般在条件允许的情况下，直接部署在最新发行版本的操作系统即可，一些旧版本的操作系统后面会慢慢的取消兼容性测试等，在版本的迭代过程中慢慢会失去支持。
 
-例如官方在 2021/08 的时候就宣布了在不久后会考虑启用 EL7 版本的系统了。
+例如官方在 2021/08 的时候就宣布了在不久后会考虑启用 EL7 系版本的系统了。
 
 [原话如下](https://community.theforeman.org/t/deprecation-plans-for-foreman-on-el7-debian-10-and-ubuntu-18-04/25008)：
 
@@ -91,6 +91,8 @@ Foreman 所在的操作系统不能包含外部身份提供者应用提供以下
 
 如果将 /tmp 目录挂载为单独的文件系统，则必须使用 /etc/fstab 文件中的 exec 挂载选项。如果 /tmp 已使用 noexec 选项挂载，则必须将选项更改为 exec 并重新挂载文件系统。这是 puppetserver 服务工作的必要条件。
 
+默认会在 /var/tmp 此目录去执行一些远程操作。
+
 由于大多数 Foreman 服务器数据都存储在 /var 目录中，因此在 LVM 存储上挂载 /var 可以帮助系统扩展。
 
 不要使用 GFS2 文件系统，输入输出的延迟太高了。
@@ -126,3 +128,53 @@ SELinux must be enabled, either in enforcing or permissive mode. Installation wi
 ## 域名配置问题
 
 通常是建议 foreman 的系统配置主机名时，应该要配置 fqdn 的，但是如果实在不愿意配置 fqdn ，也至少需要在 /etc/hosts 中写一个域名，因为后面安装完成后，需要一个正常用来访问的域名来访问 foreman web 端。
+
+
+
+
+
+## 补丁更新的依赖问题
+
+https://docs.theforeman.org/3.2/Content_Management_Guide/index-katello.html#Limitations_to_Repository_Dependency_Resolution_content-management
+
+
+
+### Limitations to Repository Dependency Resolution
+
+With Foreman, using incremental updates to your Content Views solves some repository dependency problems. However, dependency resolution at a repository level still remains problematic on occasion.
+
+When a repository update becomes available with a new dependency, Foreman retrieves the newest version of the package to solve the dependency, even if there are older versions available in the existing repository package. This can create further dependency resolution problems when installing packages.
+
+Example scenario
+
+A repository on your client has the package `example_repository-1.0` with the dependency `example_repository-libs-1.0`. The repository also has another package `example_tools-1.0`.
+
+A security erratum becomes available with the package `example_tools-1.1`. The `example_tools-1.1` package requires the `example_repository-libs-1.1` package as a dependency.
+
+After an incremental Content View update, the `example_tools-1.1`, `example_tools-1.0`, and `example_repository-libs-1.1` are now in the repository. The repository also has the packages `example_repository-1.0` and `example_repository-libs-1.0`. Note that the incremental update to the Content View did not add the package `example_repository-1.1`. Because you can install all these packages using yum, no potential problem is detected. However, when the client installs the `example_tools-1.1` package, a dependency resolution problem occurs because both `example_repository-libs-1.0` and `example_repository-libs-1.1` cannot be installed.
+
+There is currently no workaround for this problem. The larger the time frame, and major *Y* releases between the base set of RPMs and the errata being applied, the higher the chance of a problem with dependency resolution.
+
+
+
+
+
+## 关于 content 的依赖解决与 filter 功能
+
+参考官方：[Resolving Package Dependencies](https://docs.theforeman.org/3.2/Content_Management_Guide/index-katello.html#Resolving_Package_Dependencies_content-management)
+
+If you add a filter that excludes some packages that are required and the Content View has dependency resolution enabled, Foreman ignores the rules you create in your filter in favor of resolving the package dependency.
+
+依赖解决的功能优先级会高于 content 的 filter 功能，如果勾选了依赖功能，会优先为了解决一些能解决的依赖功能而取消会有影响的 filter rule。 
+
+
+
+
+
+## 关于补丁管理的执行
+
+补丁管理的执行，可以考虑直接使用 应用Errata 的方式，或者是直接使用 job template 的那些安装软件包的方式。
+
+这两种方式就可以解决 errata 应用以及软件包安装的各种需求了。
+
+另外看看是否可以做一个回退的模板？暂时考虑使用 downgrade 或者 history undo 的方式来进行。
