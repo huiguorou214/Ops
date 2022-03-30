@@ -2,6 +2,30 @@
 
 
 
+
+
+## YUM 源服务器配置
+
+在无法连接公网的环境中，导入资源的前提是需要在 YUM 源服务器上配置好内网的离线 YUM 源，将内网 YUM 源作为 Foreman 的上游来同步资源到 Foreman 服务器中。
+
+
+
+配置基础YUM源
+
+
+
+
+
+配置 errata
+
+
+
+
+
+
+
+
+
 ## 导入 YUM 源
 
 
@@ -12,19 +36,19 @@
 
 ## 导入 errata
 
+通过使用命令生成 updateinfo
+
+```bash
+
+```
 
 
 
+创建空的 repodate 后导入 updateinfo
 
+```bash
 
-
-## 导入 ISO
-
-
-
-
-
-## 导入 docker images
+```
 
 
 

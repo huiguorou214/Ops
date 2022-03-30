@@ -178,3 +178,13 @@ If you add a filter that excludes some packages that are required and the Conten
 这两种方式就可以解决 errata 应用以及软件包安装的各种需求了。
 
 另外看看是否可以做一个回退的模板？暂时考虑使用 downgrade 或者 history undo 的方式来进行。
+
+
+
+## 不同数据中心位置场景需求下的部署方案
+
+对于不同的用户，通常会有不同的这个数据中心位置，有的可能是集中在一个地方的数据中心，有的可能是全国分布有多个数据中心，那么对于这些不同的场景，官方也给出了一些相应的解决方案。
+
+参考：https://access.redhat.com/documentation/en-us/red_hat_satellite/6.10/html/planning_for_red_hat_satellite/chap-red_hat_satellite-architecture_guide-deployment_scenarios
+
+可以根据实际情况是单点还是多点，选择不同的部署方案来更好的满足我们的实际需求。

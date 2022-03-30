@@ -44,10 +44,6 @@
 
 所以现在有两个疑问，一个是如果不安装 puppet 会有什么影响？另外一个就是如果有影响的话，是否可以在此基础上进行加装。 
 
-加装应该是没问题的，后续需要参考一下帖子里面提到的文档进行测试：https://community.theforeman.org/t/foreman-installer-scenario-katello-does-not-install-puppet-server/26664/6?u=shinefire
-
-
-
 
 
 尝试直接加装
@@ -56,7 +52,19 @@
 ~]# foreman-installer --enable-puppet
 ```
 
-但是从 `foreman-maintain service list` 的结果上，也没有看有加上 puppetserver 之类的服务。
+但是从 `foreman-maintain service list` 的结果上，也没有看有加上 puppetserver 之类的服务，看来这样操作并不是正确的方法。
+
+
+
+加装应该是没问题的，后续需要参考一下帖子里面提到的文档进行测试：https://community.theforeman.org/t/foreman-installer-scenario-katello-does-not-install-puppet-server/26664/6?u=shinefire
+
+在 Foreman 启用 puppet 集成可以参考官方文档：https://docs.theforeman.org/3.2/Managing_Configurations_Puppet/index-katello.html#Enabling_Puppet_Integration_managing-configurations-puppet
+
+
+
+不加装应该也是没有关系的，目前看来加装启用 Puppet 应该也就和增加一个 Ansible 的作用差不多，如果不需要使用 Puppet 自动化工具去管理客户端主机的话，也可以不加。
+
+
 
 
 
@@ -97,4 +105,18 @@ Foreman 中的 Ansible 的详细配置与使用参考：https://docs.theforeman.
 参考：https://docs.theforeman.org/3.2/Managing_Hosts/index-foreman-el.html#Generating_Host_Monitoring_Reports_managing-hosts
 
 可以生成一些报表，例如
+
+
+
+
+
+## 测试关闭 rhsmcertd.service
+
+测试一下，如果在 host 关闭了 rhsmcertd.service 之后，是不是就无法正常的使用订阅管理了，以及补丁那些也都无法正常使用了。
+
+
+
+
+
+## 修改远程使用的用户
 

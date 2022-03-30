@@ -799,7 +799,7 @@ A：
 
 
 
-## Foreman Server 如何管理 Client？
+## Foreman Server 管理 Client 原理
 
 Q：
 
@@ -810,6 +810,24 @@ Foreman Server 管理 Client 的方式是怎么样的呢？
 如果不是通过 agent 的话，那又是建立长连接的方式还是定期连接一下检查一下呢？还是说由 client 自动去定时发送一些信息报给 Foreman Server 呢？
 
 A：
+
+目前看来，针对补丁管理方面的话，应该是通过 client 上面的 rhsmcertd.service 来进行订阅管理，同时上报那些漏洞信息，应该也是利用了这个服务吧？
+
+但是测试了一下，尝试关掉这个服务好像也没有什么影响，还是一样可以正常的使用。
+
+后面又看到一篇blog："[subscription manager 安装 配置 使用 - eayun/EayunDM Wiki](https://github-wiki-see.page/m/eayun/EayunDM/wiki/subscription-manager-%E5%AE%89%E8%A3%85-%E9%85%8D%E7%BD%AE-%E4%BD%BF%E7%94%A8)"，通过这篇blog看起来，感觉 Foreman 对各个服务器进行补丁管理这些控制完全是基于客户端自己的 subscription manager 的？
+
+
+
+## Foreman Server 通过 Insights 扫描客户端上的安全漏洞
+
+Q：
+
+在 Foreman 上生成给客户端注册到 Foreman 命令的时候，有 setup insights 的选项，需要勾选这个选项后才可以让注册机上存在的安全漏洞被 Foreman 识别到，然后在想是不是这个跟补丁管理关系会更密切呢？另外就是它是怎么去扫描的呢？会定期扫描还是怎么样的吗？因为客户端自己手动更新包之后，Foreman上面也会自动更新，所以我觉得他们直接应该还是有什么办法去建立一些连接之类的。
+
+但是需要测试一下，客户端自己更新之后，Foreman 上面的对应主机补丁信息是马上就更新了还是过一段时间才更新的呢？
+
+
 
 
 
@@ -847,3 +865,14 @@ Job template 所使用的是 **嵌入式Ruby语法**，另外也有一些写法�
 
 
 
+## Tracer utility 组件作用
+
+Q：
+
+在文档 https://docs.theforeman.org/nightly/Planning_Guide/index-katello.html#Client_Operating_Systems
+
+里面有看到说 Katello 提供一些 content 和订阅管理相关的功能，然后提到了 Tracer utility 这个组件，但是这里面也没有仔细说一下这个组件的作用是什么，所以暂时也不太明白。
+
+A：
+
+ 
