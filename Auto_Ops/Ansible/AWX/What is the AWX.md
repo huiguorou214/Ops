@@ -42,7 +42,7 @@ awx平台中资源的使用规范化，例如playbook规范化，在编写好的
 
 信息如下
 
-- FQDN：awx.cn.wal-mart.com
+- FQDN：awx.shinefire.com
 
 ### 系统要求
 

@@ -876,3 +876,47 @@ Q：
 A：
 
  
+
+
+
+## 安装 Ansible Plugin 报错
+
+Q：
+
+在尝试加装这个 ansible plugin 的时候，遇到了下面的报错：
+
+```bash
+[root@foreman-server ~]# foreman-installer --enable-foreman-plugin-ansible \
+> --enable-foreman-proxy-plugin-ansible
+2022-03-30 14:32:16 [NOTICE] [root] Loading installer configuration. This will take some time.
+2022-03-30 14:32:20 [NOTICE] [root] Running installer with log based terminal output at level NOTICE.
+2022-03-30 14:32:20 [NOTICE] [root] Use -l to set the terminal output log level to ERROR, WARN, NOTICE, INFO, or DEBUG. See --full-help for definitions.
+2022-03-30 14:32:26 [NOTICE] [configure] Starting system configuration.
+2022-03-30 14:32:39 [NOTICE] [configure] 250 configuration steps out of 1747 steps complete.
+2022-03-30 14:32:42 [NOTICE] [configure] 500 configuration steps out of 1747 steps complete.
+2022-03-30 14:32:43 [ERROR ] [configure] Execution of '/bin/dnf -d 0 -e 1 -y install ansible-runner' returned 1: Error: Failed to download metadata for repo 'ansible-runner': Cannot download repomd.xml: Cannot download repodata/repomd.xml: All mirrors were tried
+2022-03-30 14:32:43 [ERROR ] [configure] /Stage[main]/Foreman_proxy::Plugin::Ansible::Runner/Package[ansible-runner]/ensure: change from 'purged' to 'present' failed: Execution of '/bin/dnf -d 0 -e 1 -y install ansible-runner' returned 1: Error: Failed to download metadata for repo 'ansible-runner': Cannot download repomd.xml: Cannot download repodata/repomd.xml: All mirrors were tried
+2022-03-30 14:32:43 [NOTICE] [configure] 750 configuration steps out of 1751 steps complete.
+2022-03-30 14:32:47 [ERROR ] [configure] Execution of '/bin/dnf -d 0 -e 1 -y install rubygem-foreman_ansible' returned 1: Error: Failed to download metadata for repo 'ansible-runner': Cannot download repomd.xml: Cannot download repodata/repomd.xml: All mirrors were tried
+2022-03-30 14:32:47 [ERROR ] [configure] /Stage[main]/Foreman::Plugin::Ansible/Foreman::Plugin[ansible]/Package[rubygem-foreman_ansible]/ensure: change from 'purged' to 'present' failed: Execution of '/bin/dnf -d 0 -e 1 -y install rubygem-foreman_ansible' returned 1: Error: Failed to download metadata for repo 'ansible-runner': Cannot download repomd.xml: Cannot download repodata/repomd.xml: All mirrors were tried
+2022-03-30 14:32:47 [NOTICE] [configure] 1000 configuration steps out of 1758 steps complete.
+2022-03-30 14:32:48 [NOTICE] [configure] 1250 configuration steps out of 1759 steps complete.
+2022-03-30 14:32:49 [ERROR ] [configure] Execution of '/bin/dnf -d 0 -e 1 -y install rubygem-smart_proxy_dynflow' returned 1: Error: Failed to download metadata for repo 'ansible-runner': Cannot download repomd.xml: Cannot download repodata/repomd.xml: All mirrors were tried
+2022-03-30 14:32:49 [ERROR ] [configure] /Stage[main]/Foreman_proxy::Plugin::Dynflow/Foreman_proxy::Plugin::Module[dynflow]/Foreman_proxy::Plugin[dynflow]/Package[rubygem-smart_proxy_dynflow]/ensure: change from 'purged' to 'present' failed: Execution of '/bin/dnf -d 0 -e 1 -y install rubygem-smart_proxy_dynflow' returned 1: Error: Failed to download metadata for repo 'ansible-runner': Cannot download repomd.xml: Cannot download repodata/repomd.xml: All mirrors were tried
+2022-03-30 14:32:49 [ERROR ] [configure] Execution of '/bin/dnf -d 0 -e 1 -y install rubygem-smart_proxy_ansible' returned 1: Error: Failed to download metadata for repo 'ansible-runner': Cannot download repomd.xml: Cannot download repodata/repomd.xml: All mirrors were tried
+2022-03-30 14:32:49 [ERROR ] [configure] /Stage[main]/Foreman_proxy::Plugin::Ansible/Foreman_proxy::Plugin::Module[ansible]/Foreman_proxy::Plugin[ansible]/Package[rubygem-smart_proxy_ansible]/ensure: change from 'purged' to 'present' failed: Execution of '/bin/dnf -d 0 -e 1 -y install rubygem-smart_proxy_ansible' returned 1: Error: Failed to download metadata for repo 'ansible-runner': Cannot download repomd.xml: Cannot download repodata/repomd.xml: All mirrors were tried
+2022-03-30 14:33:04 [NOTICE] [configure] 1500 configuration steps out of 1759 steps complete.
+2022-03-30 14:33:14 [NOTICE] [configure] 1750 configuration steps out of 1759 steps complete.
+2022-03-30 14:33:17 [NOTICE] [configure] System configuration has finished.
+
+  There were errors detected during install.
+  Please address the errors and re-run the installer to ensure the system is properly configured.
+  Failing to do so is likely to result in broken functionality.
+
+  The full log is at /var/log/foreman-installer/katello.log
+```
+
+A：
+
+
+

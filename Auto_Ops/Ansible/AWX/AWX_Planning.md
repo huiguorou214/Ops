@@ -10,15 +10,15 @@
 
 #### Environment
 
-| items       | value               |
-| ----------- | ------------------- |
-| OS Version  | CentOS7.8           |
-| hostname    | awx.cn.wal-mart.com |
-| IP          |                     |
-| AWX Version |                     |
-| Docker-CE   |                     |
-| Python      |                     |
-| Git Version |                     |
+| items       | value             |
+| ----------- | ----------------- |
+| OS Version  | CentOS7.8         |
+| hostname    | awx.shinefire.com |
+| IP          |                   |
+| AWX Version |                   |
+| Docker-CE   |                   |
+| Python      |                   |
+| Git Version |                   |
 
 ssh key
 

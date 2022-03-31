@@ -120,3 +120,12 @@ Foreman 中的 Ansible 的详细配置与使用参考：https://docs.theforeman.
 
 ## 修改远程使用的用户
 
+
+
+
+
+
+
+## 测试生成的命令行安装 subscription-manager
+
+正常情况下，是要先在 client 安装好 subscription-manager 才能进行管理的，但是如果在生成的命令行上给它加上默认安装这个软件包，是不是就可以在使用命令行注册的时候就安装上了？
