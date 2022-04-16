@@ -14,13 +14,13 @@ E-mail:shine_fire@outlook.com
 
 [TOC]
 
-## 一、Introduction
+## Introduction
 
 Foreman-katello  是一个All in one的开源项目，整合了很多其他开源模块用于实现服务器的集中管理，他从上游repo获取内容后，部署到各种平台上，可以支持虚拟化，物理机，公有云上的操作系统的统一管理。
 
 
 
-## 二、Enviroment Planning
+## Enviroment Planning
 
 ### 版本说明
 
@@ -69,9 +69,9 @@ Protect your Foreman environment by blocking all unnecessary and unused ports.
 
 
 
-## 三、使用Foreman Installer部署
+## 使用Foreman Installer部署
 
-### 3.1 系统环境准备
+### 系统环境准备
 
 
 
@@ -165,7 +165,7 @@ Preparing installation Done
 
 等待提示Success!安装成功，记录默认的admin**管理员密码**，例如上面的`DYEHYBg3ufJt9CiP`，可以在提示的路径中查看安装日志。
 
-## 四、WEB端登陆使用
+## WEB端登陆使用
 
 浏览器中输入IP或者域名即可访问，
 

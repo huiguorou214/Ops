@@ -27,7 +27,7 @@ Foreman-katello  是一个All in one的开源项目，整合了很多其他开�
 | Items           | Var                                     |
 | --------------- | --------------------------------------- |
 | OS Version      | CentOS Stream 8（7版本马上要被抛弃...） |
-| Foreman Version | 3.1（当前的稳定版本）                   |
+| Foreman Version | 3.2（当前的稳定版本）                   |
 
 
 
@@ -420,9 +420,6 @@ puppet7               Puppet 7 Repository el 8 - x86_64
 | --enable-foreman-proxy-plugin-remote-execution-ssh |                                                      |
 | --enable-foreman-compute-vmware                    | vmware相关的支持                                     |
 | --enable-foreman-compute-ovirt                     | ovirt相关的支持                                      |
-|                                                    |                                                      |
-|                                                    |                                                      |
-|                                                    |                                                      |
 
 
 
@@ -561,8 +558,6 @@ Executing: foreman-rake upgrade:run
 
 #### 检查安装结果
 
-
-
 使用 命令检查服务运行状态
 
 不加任何参数安装后的结果如下，是默认带有puppetserver的：
@@ -586,6 +581,18 @@ tomcat.service                             enabled
 All services listed                                                   [OK]
 --------------------------------------------------------------------------------
 ```
+
+
+
+#### 停用 puppet 服务
+
+安装成功后，可以先停用 puppet 服务，目前并不打算使用 puppet，如果不停用，会有可能影响后面 web 端的登录使用
+
+```bash
+~]# systemctl disable puppet --now
+```
+
+
 
 
 

@@ -120,7 +120,7 @@ Foreman 中的 Ansible 的详细配置与使用参考：https://docs.theforeman.
 
 ## 修改远程使用的用户
 
-
+尝试修改远程执行命令的用户为其他用户的时候，发现远程命令运行失败...
 
 
 
@@ -129,3 +129,37 @@ Foreman 中的 Ansible 的详细配置与使用参考：https://docs.theforeman.
 ## 测试生成的命令行安装 subscription-manager
 
 正常情况下，是要先在 client 安装好 subscription-manager 才能进行管理的，但是如果在生成的命令行上给它加上默认安装这个软件包，是不是就可以在使用命令行注册的时候就安装上了？
+
+
+
+
+
+
+
+
+
+## 对比一下红帽和开源的errata
+
+
+
+红帽的 https://www.redhat.com/security/data/oval/v2/RHEL7/rhel-7.oval.xml.bz2
+
+
+
+
+
+## 对比一下安装前后的 密钥 
+
+不安装 remote exec ssh 的话，是不是 /usr/share/foreman-proxy/.ssh/ 目录下也不会有密钥？
+
+没有！！！
+
+
+
+
+
+## 安装前后的软件包
+
+看看安装前后的那些 ansible-runner 的是否能够正常安装
+
+如果锁死了repofile的话，报错安装完成后，ansible-runner 这个yum源里面那些软件包也不会自动安装的。

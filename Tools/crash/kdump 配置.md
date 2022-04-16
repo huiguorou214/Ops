@@ -98,6 +98,13 @@ uefi引导的方法如下所示：
 ~]# systemctl enable kdump.service
 ```
 
+在RedHat Enterprise Linux Server 5 和6上:
+
+```bash
+# service kdump start
+# chkconfig kdump on
+```
+
 
 
 永久启用魔术键 SysRq key

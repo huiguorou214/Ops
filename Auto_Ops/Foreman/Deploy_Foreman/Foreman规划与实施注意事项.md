@@ -52,15 +52,17 @@ For that I’m proposing that we start announcing with Foreman 3.0 that we’re 
 
 
 
-## 主机名命名问题
+## Client主机名命名问题
 
-主机名不符合要求也会影响正常使用。
+Client主机名不符合要求也会影响正常使用。
 
 主机名可以包含小写字母、数字、点 (.) 和连字符 (-)
 
 主机名不能使用大写字母，客户端也不能用大写字母作为主机名，不然可能会因为主机名大写问题无法加入到Foreman中去。
 
-解析的时候也要写fqdn，而不能只写short hostname
+主机名不能用 localhost，不然都变成一样的hostname了会有冲突。
+
+*解析的时候也要写fqdn，而不能只写short hostname* -- short hostname 目前看来好像也没什么问题
 
 
 
@@ -181,6 +183,8 @@ If you add a filter that excludes some packages that are required and the Conten
 
 
 
+
+
 ## 不同数据中心位置场景需求下的部署方案
 
 对于不同的用户，通常会有不同的这个数据中心位置，有的可能是集中在一个地方的数据中心，有的可能是全国分布有多个数据中心，那么对于这些不同的场景，官方也给出了一些相应的解决方案。
@@ -188,3 +192,8 @@ If you add a filter that excludes some packages that are required and the Conten
 参考：https://access.redhat.com/documentation/en-us/red_hat_satellite/6.10/html/planning_for_red_hat_satellite/chap-red_hat_satellite-architecture_guide-deployment_scenarios
 
 可以根据实际情况是单点还是多点，选择不同的部署方案来更好的满足我们的实际需求。
+
+
+
+
+

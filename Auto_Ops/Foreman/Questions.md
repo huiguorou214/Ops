@@ -14,7 +14,7 @@ A1：
 
 
 
-## 指定 RPM 批量安装更新
+## 指定 RPM 批量安装更新（未解决）
 
 Q2：
 
@@ -40,7 +40,9 @@ Q3：
 
 A1：
 
-可以考虑用 need reboot 来进行筛选
+可以考虑用 need reboot 来进行筛选。
+
+Foreman 本身是可以额外安装 tracer 工具来进行追踪的，后面如果有需要的时候就再安装这个好啦。
 
 
 
@@ -72,17 +74,13 @@ Q1：
 
 A：
 
-**未测试**，理论上应该是可以再次使用 `--reset` 进行重新安装的。
-
-好像直接再重新加插件参数进行加装即可。
+直接重新再使用参数进行加装即可，会自己安装的。
 
 
 
-## 如何找默认DB账户信息
 
-Q2：
 
-Foreman 安装完毕后，例如DB的这些账户信息之类的，要在什么地方查看呢？
+## 默认数据库信息如何直接看呢？（未解决）
 
 A：
 
@@ -112,13 +110,15 @@ Q4：
 
 A：
 
-安装过程中如果出现问题可以增加 --reset 参数重新安装。
+最方便的就是提前打好快照，直接重装。
 
-不过应该也可以直接安装，这个问题还是个问题...
+另外不是什么奇怪的问题的话，直接重复运行命令也没什么影响的。
 
 
 
-## 加装 katello 报错
+
+
+## 加装katello，发现报错如下：
 
 Q5：
 
@@ -229,6 +229,8 @@ A：
 https://community.theforeman.org/t/katello-4-foreman-2-4-centos-8-4/23871
 
 （这也太坑了吧...  文档里面也完全没说这个呀... ）
+
+按理来说安装的过程自动 enable 的话应该也是可以的，不知道为什么我这里安装的过程中，没有能够自动 enable 成功，所以最好是提前手动 enable 确保一下吧。
 
 
 
@@ -374,7 +376,7 @@ A：
 
 
 
-## foreman-installer 遇到的 foreman-rake db:migrate 报错
+## foreman-installer 遇到的 foreman-rake db:migrate 报错（未解决）
 
 Q11：
 
@@ -691,7 +693,6 @@ A：
 
 ```bash
 ~]# dnf list| grep katello-selinux
-
 ```
 
 查找出提供 `pulpcore-selinux` 的 module：
@@ -769,7 +770,7 @@ A：
 
 
 
-## Client 修改主机名后该如何更新？
+## Client 修改主机名后该如何更新？（未解决）
 
 Q14：
 
@@ -785,7 +786,7 @@ A：
 
 
 
-## 后增加的repository 能否自动加入到已注册的hosts上
+## 后增加的 repository 能否自动加入到已注册的hosts上（未解决）
 
 Q15：
 
@@ -793,7 +794,9 @@ Q15：
 
 A：
 
-不确定是不是和这个文档描述的内容差不多，可以参考一下试试：[Updating Subscriptions Associated with an Activation Key](https://docs.theforeman.org/3.2/Content_Management_Guide/index-katello.html#Updating_Subscriptions_Associated_with_an_Activation_Key_content-management) 
+不确定是不是和这个文档描述的内容差不多，可以参考一下试试：
+
+[Updating Subscriptions Associated with an Activation Key](https://docs.theforeman.org/3.2/Content_Management_Guide/index-katello.html#Updating_Subscriptions_Associated_with_an_Activation_Key_content-management) 
 
 
 
@@ -817,9 +820,17 @@ A：
 
 后面又看到一篇blog："[subscription manager 安装 配置 使用 - eayun/EayunDM Wiki](https://github-wiki-see.page/m/eayun/EayunDM/wiki/subscription-manager-%E5%AE%89%E8%A3%85-%E9%85%8D%E7%BD%AE-%E4%BD%BF%E7%94%A8)"，通过这篇blog看起来，感觉 Foreman 对各个服务器进行补丁管理这些控制完全是基于客户端自己的 subscription manager 的？
 
+**最终结果：**
+
+参考一下红帽官方的这个 **solution：https://access.redhat.com/articles/3154811**
+
+里面有详细的说明，以前是通过在 Client 使用 `goferd` 服务，来进行收集和报告当前安装软件包信息的， 但是现在已经通过 `katello-host-tools` 这个软件包所提供的 `yum` 插件来进行这个工作了，所以已经是不再需要使用 agent 了。
+
+> 但是说实话，katello-host-tools 这个软件包不用安装也可以正常收集上报安装包，后面再针对性测试一下吧。
 
 
-## Foreman Server 通过 Insights 扫描客户端上的安全漏洞
+
+## Foreman Server 通过 Insights 扫描客户端上的安全漏洞（未解决）
 
 Q：
 
@@ -833,7 +844,7 @@ Q：
 
 
 
-## DNS会影响Foreman远程执行吗？
+## DNS会影响Foreman远程执行吗？（未解决）
 
 Q：
 
@@ -865,7 +876,7 @@ Job template 所使用的是 **嵌入式Ruby语法**，另外也有一些写法�
 
 
 
-## Tracer utility 组件作用
+## Tracer utility 组件作用（未解决）
 
 Q：
 
@@ -879,7 +890,7 @@ A：
 
 
 
-## 安装 Ansible Plugin 报错
+## 安装 Ansible Plugin 报错（未解决）
 
 Q：
 
@@ -917,6 +928,324 @@ Q：
 ```
 
 A：
+
+原因应该是在加装 plugin 的时候，会自动配置这个 ansible-runner 的yum 源，但是配置后，因为是公网地址，无法正常访问，所以就会报错。
+
+但是这个问题麻烦的点在于，即使把那个yum源sync到本地，做成离线 YUM 源，它还是会自动修改本地的地址，换成公网的地址尝试去拉取，然后还是会报错，这就有点离谱。
+
+直接暴力一点操作，给 yum repofile 执行 chattr +i 锁定文件来避免被修改影响后面的安装进程。
+
+修改后的安装过程输出：
+
+```bash
+[root@foreman-server ~]# foreman-installer --scenario katello --foreman-initial-organization "Foreman" --foreman-initial-location "Test_ENV" --foreman-initial-admin-username admin --foreman-initial-admin-password password --foreman-initial-admin-timezone Asia/Shanghai --enable-foreman-cli-ansible --enable-foreman-plugin-ansible --enable-foreman-proxy-plugin-ansible --enable-foreman-proxy-plugin-remote-execution-ssh
+2022-04-01 12:39:46 [NOTICE] [root] Loading installer configuration. This will take some time.
+2022-04-01 12:39:50 [NOTICE] [root] Running installer with log based terminal output at level NOTICE.
+2022-04-01 12:39:50 [NOTICE] [root] Use -l to set the terminal output log level to ERROR, WARN, NOTICE, INFO, or DEBUG. See --full-help for definitions.
+2022-04-01 12:39:55 [NOTICE] [configure] Starting system configuration.
+2022-04-01 12:40:08 [NOTICE] [configure] 250 configuration steps out of 1769 steps complete.
+2022-04-01 12:40:11 [NOTICE] [configure] 500 configuration steps out of 1769 steps complete.
+2022-04-01 12:40:11 [ERROR ] [configure] Puppet::Util::FileType::FileTypeFlat could not write /etc/yum.repos.d/foreman.repo: Operation not permitted @ rb_sysopen - /etc/yum.repos.d/foreman.repo
+2022-04-01 12:40:11 [ERROR ] [configure] /Stage[main]/Foreman_proxy::Plugin::Ansible::Runner/Yumrepo[ansible-runner]: Could not evaluate: Puppet::Util::FileType::FileTypeFlat could not write /etc/yum.repos.d/foreman.repo: Operation not permitted @ rb_sysopen - /etc/yum.repos.d/foreman.repo
+2022-04-01 12:40:12 [NOTICE] [configure] 750 configuration steps out of 1772 steps complete.
+2022-04-01 12:41:04 [NOTICE] [configure] 1000 configuration steps out of 1779 steps complete.
+2022-04-01 12:41:09 [NOTICE] [configure] 1250 configuration steps out of 1800 steps complete.
+2022-04-01 12:46:19 [NOTICE] [configure] 1500 configuration steps out of 1800 steps complete.
+2022-04-01 12:49:30 [NOTICE] [configure] 1750 configuration steps out of 1800 steps complete.
+2022-04-01 12:51:49 [NOTICE] [configure] System configuration has finished.
+
+  There were errors detected during install.
+  Please address the errors and re-run the installer to ensure the system is properly configured.
+  Failing to do so is likely to result in broken functionality.
+
+  The full log is at /var/log/foreman-installer/katello.log
+```
+
+从结果上来看的话，是达到了预期的效果，但是也存在一点报错，目前也不太确定会不会有什么负面影响，看上去应该是没有关系，毕竟那个报错的过程，看上去应该只是 Foreman 配置 yum 源失败的报错，后面安装只要能继续下去应该就没有关系。
+
+
+
+## curl 命令注册失败问题
+
+Q：
+
+在客户端上使用 curl 命令尝试注册到 Foreman Server，但是遇到了下面的报错：
+
+```bash
+[root@foreman-client01 ~]# curl -sS --insecure 'http://10.241.120.120/register?activation_keys=CentOS-7-Key&lifecycle_environment_id=1&location_id=2&organization_id=1&setup_insights=true&setup_remote_execution=true&update_packages=false' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo0LCJpYXQiOjE2NDg2OTE2OTIsImp0aSI6ImU4NjIxZjQxYjg5Y2Y0OGYwM2EzNThmYmQyYjMwYzZlYTNjNjFkMWNlYzEwNWRkMjU4MzkzOTIxMTZlOGMwZWEiLCJzY29wZSI6InJlZ2lzdHJhdGlvbiNnbG9iYWwgcmVnaXN0cmF0aW9uI2hvc3QifQ.56rHVpObBPkcMX6M_AUfm7VpQK0pZVBYMdaAvp84OP4' | bash
+bash: line 1: syntax error near unexpected token `<'
+bash: line 1: `<html><body>You are being <a href="https://10.241.120.120/register?activation_keys=CentOS-7-Key&amp;lifecycle_environment_id=1&amp;location_id=2&amp;organization_id=1&amp;setup_insights=true&amp;setup_remote_execution=true&amp;update_packages=false">redirected</a>.</body></html>'
+```
+
+A：
+
+检查 `/var/log/rhsm/rhsm.log` 日志发现下面的内容：
+
+```bash
+2022-03-31 10:10:04,566 [INFO] rhsmd:30367:MainThread @rhsm_d.py:382 - D-Bus API: com.redhat.SubscriptionManager provided by rhsmd is deprecated
+2022-03-31 10:10:04,566 [INFO] rhsmd:30367:MainThread @rhsm_d.py:383 - Consider using D-Bus API: com.redhat.RHSM1 provided by rhsm.service
+2022-03-31 10:10:04,636 [INFO] subscription-manager:30355:MainThread @connection.py:905 - Connection built: host=subscription.rhsm.redhat.com port=443 handler=/subscription auth=identity_cert ca_dir=/etc/rhsm/ca/ insecure=False
+2022-03-31 10:10:04,974 [INFO] subscription-manager:30379:MainThread @connection.py:905 - Connection built: host=foreman-server-test.com port=443 handler=/rhsm auth=identity_cert ca_dir=/etc/rhsm/ca/ insecure=False
+2022-03-31 10:10:05,273 [INFO] subscription-manager:30390:MainThread @connection.py:905 - Connection built: host=foreman-server-test.com port=443 handler=/rhsm auth=identity_cert ca_dir=/etc/rhsm/ca/ insecure=False
+2022-03-31 10:10:05,573 [INFO] subscription-manager:30403:MainThread @connection.py:905 - Connection built: host=foreman-server-test.com port=443 handler=/rhsm auth=identity_cert ca_dir=/etc/rhsm/ca/ insecure=False
+2022-03-31 10:10:05,589 [INFO] subscription-manager:30403:MainThread @connection.py:905 - Connection built: host=foreman-server-test.com port=443 handler=/rhsm auth=identity_cert ca_dir=/etc/rhsm/ca/ insecure=False
+2022-03-31 10:10:05,589 [INFO] subscription-manager:30403:MainThread @connection.py:905 - Connection built: host=foreman-server-test.com port=443 handler=/rhsm auth=none
+2022-03-31 10:10:05,590 [INFO] subscription-manager:30403:MainThread @connection.py:905 - Connection built: host=foreman-server-test.com port=443 handler=/rhsm auth=none
+2022-03-31 10:10:06,123 [ERROR] subscription-manager:30403:MainThread @managercli.py:217 - Error during registration: [Errno -2] Name or service not known
+2022-03-31 10:10:06,123 [ERROR] subscription-manager:30403:MainThread @managercli.py:218 - [Errno -2] Name or service not known
+Traceback (most recent call last):
+  File "/usr/lib64/python2.7/site-packages/subscription_manager/managercli.py", line 1384, in _do_command
+    type=self.options.consumertype
+  File "/usr/lib64/python2.7/site-packages/rhsmlib/services/register.py", line 91, in register
+    usage=usage
+  File "/usr/lib64/python2.7/site-packages/rhsm/connection.py", line 1021, in registerConsumer
+    return self.conn.request_post(url, params)
+  File "/usr/lib64/python2.7/site-packages/rhsm/connection.py", line 729, in request_post
+    return self._request("POST", method, params, headers=headers)
+  File "/usr/lib64/python2.7/site-packages/rhsm/connection.py", line 752, in _request
+    info=info, headers=headers)
+  File "/usr/lib64/python2.7/site-packages/rhsm/connection.py", line 583, in _request
+    conn.request(request_type, handler, body=body, headers=final_headers)
+  File "/usr/lib64/python2.7/httplib.py", line 1041, in request
+    self._send_request(method, url, body, headers)
+  File "/usr/lib64/python2.7/httplib.py", line 1075, in _send_request
+    self.endheaders(body)
+  File "/usr/lib64/python2.7/httplib.py", line 1037, in endheaders
+    self._send_output(message_body)
+  File "/usr/lib64/python2.7/httplib.py", line 881, in _send_output
+    self.send(msg)
+  File "/usr/lib64/python2.7/httplib.py", line 843, in send
+    self.connect()
+  File "/usr/lib64/python2.7/httplib.py", line 1251, in connect
+    HTTPConnection.connect(self)
+  File "/usr/lib64/python2.7/httplib.py", line 824, in connect
+    self.timeout, self.source_address)
+  File "/usr/lib64/python2.7/socket.py", line 553, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+gaierror: [Errno -2] Name or service not known
+```
+
+发现问题还是出在这个主机名解析失败的问题上，因为 Client 没法解析到 Foreman 的域名，所以需要在 Client 上的 "/etc/hosts" 中配置一下域名解析，或者有能够使用的 DNS 服务器配置一下也行。
+
+
+
+
+
+## RHEL 操作系统注册异常
+
+
+
+注册异常：
+
+![image-20220401162030828](pictures/image-20220401162030828.png)
+
+A：
+
+RHEL 的操作系统默认会安装 "Red Hat Enterprise Linux Server" 的 Product，然后在这个的基础上再去注册到 Foreman 上就会出现上面的失败，解决办法是删掉 RHEL 自带的，反正也用不上。
+
+删除默认的 Product：
+
+```bash
+[root@rhel76-ori ~]# ls /etc/pki/product-default/
+69.pem
+[root@rhel76-ori ~]# subscription-manager list
++-------------------------------------------+
+    Installed Product Status
++-------------------------------------------+
+Product Name:   Red Hat Enterprise Linux Server
+Product ID:     69
+Version:        7.6
+Arch:           x86_64
+Status:         Unknown
+Status Details:
+Starts:
+Ends:
+
+[root@rhel76-ori ~]# rm -f /etc/pki/product-default/69.pem
+[root@rhel76-ori ~]# subscription-manager list
+No installed products to list
+```
+
+删除 `/etc/pki/product-default/69.pem ` 之后就可以解决这个问题了。
+
+
+
+## SSH Remote Execution 失败问题
+
+Q：
+
+在尝试应用 Errata 以及使用执行远程命令 Job 的时候遇到了远程执行报错的问题。
+
+![image-20220401214414535](pictures/image-20220401214414535.png)
+
+报错的内容：
+
+```
+Error initializing command: RuntimeError - Unable to create directory on remote system /var/tmp/foreman-ssh-cmd-ae546bfd-f268-4ebb-bd24-c2607d1ea90e: exit code: 255
+
+Exit status: EXCEPTION
+```
+
+详细日志：
+
+```
+error while initializing command RuntimeError Unable to create directory on remote system /var/tmp/foreman-ssh-cmd-5bc9dc76-b3f0-444b-8330-3bf0ede15322: exit code: 255
+ :
+ /usr/share/gems/gems/smart_proxy_remote_execution_ssh-0.5.1/lib/smart_proxy_remote_execution_ssh/runners/script_runner.rb:385:in `ensure_remote_directory'
+/usr/share/gems/gems/smart_proxy_remote_execution_ssh-0.5.1/lib/smart_proxy_remote_execution_ssh/runners/script_runner.rb:359:in `upload_data'
+/usr/share/gems/gems/smart_proxy_remote_execution_ssh-0.5.1/lib/smart_proxy_remote_execution_ssh/runners/script_runner.rb:355:in `cp_script_to_remote'
+/usr/share/gems/gems/smart_proxy_remote_execution_ssh-0.5.1/lib/smart_proxy_remote_execution_ssh/runners/script_runner.rb:158:in `prepare_start'
+/usr/share/gems/gems/smart_proxy_remote_execution_ssh-0.5.1/lib/smart_proxy_remote_execution_ssh/runners/script_runner.rb:144:in `start'
+/usr/share/gems/gems/smart_proxy_dynflow-0.7.0/lib/smart_proxy_dynflow/runner/dispatcher.rb:32:in `start_runner'
+/usr/share/gems/gems/dynflow-1.6.4/lib/dynflow/actor.rb:13:in `on_message'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/context.rb:46:in `on_envelope'
+/usr/share/gems/gems/smart_proxy_dynflow-0.7.0/lib/smart_proxy_dynflow/runner/dispatcher.rb:24:in `on_envelope'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/behaviour/executes_context.rb:7:in `on_envelope'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/behaviour/abstract.rb:25:in `pass'
+/usr/share/gems/gems/dynflow-1.6.4/lib/dynflow/actor.rb:122:in `on_envelope'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/behaviour/abstract.rb:25:in `pass'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/behaviour/awaits.rb:15:in `on_envelope'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/behaviour/abstract.rb:25:in `pass'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/behaviour/sets_results.rb:14:in `on_envelope'
+/usr/share/gems/gems/dynflow-1.6.4/lib/dynflow/actor.rb:56:in `on_envelope'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/behaviour/abstract.rb:25:in `pass'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/behaviour/buffer.rb:38:in `process_envelope'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/behaviour/buffer.rb:31:in `process_envelopes?'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/behaviour/buffer.rb:20:in `on_envelope'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/behaviour/abstract.rb:25:in `pass'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/behaviour/termination.rb:55:in `on_envelope'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/behaviour/abstract.rb:25:in `pass'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/behaviour/removes_child.rb:10:in `on_envelope'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/behaviour/abstract.rb:25:in `pass'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/behaviour/sets_results.rb:14:in `on_envelope'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/core.rb:162:in `process_envelope'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/core.rb:96:in `block in on_envelope'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/core.rb:119:in `block (2 levels) in schedule_execution'
+/usr/share/gems/gems/concurrent-ruby-1.1.6/lib/concurrent-ruby/concurrent/synchronization/mutex_lockable_object.rb:41:in `block in synchronize'
+/usr/share/gems/gems/concurrent-ruby-1.1.6/lib/concurrent-ruby/concurrent/synchronization/mutex_lockable_object.rb:41:in `synchronize'
+/usr/share/gems/gems/concurrent-ruby-1.1.6/lib/concurrent-ruby/concurrent/synchronization/mutex_lockable_object.rb:41:in `synchronize'
+/usr/share/gems/gems/concurrent-ruby-edge-0.6.0/lib/concurrent-ruby-edge/concurrent/actor/core.rb:116:in `block in schedule_execution'
+/usr/share/gems/gems/concurrent-ruby-1.1.6/lib/concurrent-ruby/concurrent/executor/serialized_execution.rb:18:in `call'
+/usr/share/gems/gems/concurrent-ruby-1.1.6/lib/concurrent-ruby/concurrent/executor/serialized_execution.rb:96:in `work'
+/usr/share/gems/gems/concurrent-ruby-1.1.6/lib/concurrent-ruby/concurrent/executor/serialized_execution.rb:77:in `block in call_job'
+/usr/share/gems/gems/concurrent-ruby-1.1.6/lib/concurrent-ruby/concurrent/executor/ruby_thread_pool_executor.rb:353:in `run_task'
+/usr/share/gems/gems/concurrent-ruby-1.1.6/lib/concurrent-ruby/concurrent/executor/ruby_thread_pool_executor.rb:342:in `block (3 levels) in create_worker'
+/usr/share/gems/gems/concurrent-ruby-1.1.6/lib/concurrent-ruby/concurrent/executor/ruby_thread_pool_executor.rb:325:in `loop'
+/usr/share/gems/gems/concurrent-ruby-1.1.6/lib/concurrent-ruby/concurrent/executor/ruby_thread_pool_executor.rb:325:in `block (2 levels) in create_worker'
+/usr/share/gems/gems/concurrent-ruby-1.1.6/lib/concurrent-ruby/concurrent/executor/ruby_thread_pool_executor.rb:324:in `catch'
+/usr/share/gems/gems/concurrent-ruby-1.1.6/lib/concurrent-ruby/concurrent/executor/ruby_thread_pool_executor.rb:324:in `block in create_worker'
+/usr/share/gems/gems/logging-2.3.0/lib/logging/diagnostic_context.rb:474:in `block in create_with_logging_context'
+```
+
+Client 的 root 用户是已经配置好了免密的，可以直接通过 Foreman 这边的 foreman-proxy 用户进行免密连接，理论上来说这，这样就可以直接免密执行命令了才对的。
+
+
+
+A：
+
+社区有人问了一个一模一样的问题，但是他也没有说出自己怎么解决的，也不知道他到底解决了没有...
+
+https://community.theforeman.org/t/all-remote-execution-jobs-fail-immediately-with-exception/27156/8
+
+在一波测试之后，解决了此问题...
+
+刚才突然在想，之前出问题的时候，是因为没有使用到域名解析，而是直接在做免密的时候使用客户端的IP地址的，然后会不会是因此导致了没有传递到真正合适的地方去？
+
+动手，单独添加一台机器到hosts中解析，然后分别对两个客户端主机使用主机名和IP地址传递密钥：
+
+```bash
+[root@foreman-server ~]# cat /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.31.111 foreman-server.shinefire.com foreman-server
+192.168.31.112 foreman-client0101.shinefire.com foreman-client01
+[root@foreman-server ~]# ssh-copy-id -i ~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub root@foreman-client01
+/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/usr/share/foreman-proxy/.ssh/id_rsa_foreman_proxy.pub"
+The authenticity of host 'foreman-client01 (192.168.31.112)' can't be established.
+ECDSA key fingerprint is SHA256:UgMaAx6FaXvUUqcBvytYhqOtobYDZrvbUJrRlTUk6c0.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+root@foreman-client01's password:
+
+Number of key(s) added: 1
+
+Now try logging into the machine, with:   "ssh 'root@foreman-client01'"
+and check to make sure that only the key(s) you wanted were added.
+
+[root@foreman-server ~]# ssh-copy-id -i ~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub root@192.168.31.196
+/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/usr/share/foreman-proxy/.ssh/id_rsa_foreman_proxy.pub"
+The authenticity of host '192.168.31.196 (192.168.31.196)' can't be established.
+ECDSA key fingerprint is SHA256:N/xQvi1Y/JsEYVfVwf2mC49yRk59Z/O80JW4GZX3qAw.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+root@192.168.31.196's password:
+
+Number of key(s) added: 1
+
+Now try logging into the machine, with:   "ssh 'root@192.168.31.196'"
+and check to make sure that only the key(s) you wanted were added.
+```
+
+做好免密后，再次尝试运行，结果真的是一半成功一半失败：
+
+![image-20220402005310011](pictures/image-20220402005310011.png)
+
+
+
+继续测试，把另外一台也写入 hosts 中解析，再次运行看是否都能成功，由此来判断到底是解析过程出问题还是传递密钥过程出问题：
+
+```bash
+[root@foreman-server ~]# cat /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.31.111 foreman-server.shinefire.com foreman-server
+192.168.31.112 foreman-client0101.shinefire.com foreman-client01
+192.168.31.196 rhel76-ori.shinefire.com rhel76-ori
+```
+
+再次运行一个 job，结果如下：
+
+![image-20220402005611726](pictures/image-20220402005611726.png)
+
+从结论上来看，是纯粹的域名解析异常问题，但是如果在没有DNS的环境中，想要继续使用域名解析的方式就只能够自己把每一个主机都要加入到 hosts 中，这样不太现实，接下来就基本上只有两个选择了，要么用DNS，要么看看能不能把Foreman的连接换成用IP的方式。
+
+
+
+## hostname 相同的client注册结果
+
+Q：
+
+如果有相同 hostname 的机器，都注册到 Foreman 里面去会怎么样呢？
+
+是会两个都在？还是说只能显示一个？还是说第二个同名 hostname 的注册会报错？
+
+A：
+
+目前看来，主机名同名的话，只会注册一个上去，并且IP地址很有可能是最后注册的那一台。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

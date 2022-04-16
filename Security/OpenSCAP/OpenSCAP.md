@@ -13,8 +13,8 @@ E-mail:shine_fire@outlook.com
 ## Introduction
 
 ### What is OpenSCAP
-、
-Security Content Automation Protocol (SCAP)
+
+### Security Content Automation Protocol (SCAP)
 
 安全内容自动化协议（SCAP）
 

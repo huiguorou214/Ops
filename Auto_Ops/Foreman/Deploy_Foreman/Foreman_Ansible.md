@@ -11,7 +11,9 @@
 如果需要使用ansible插件则需要使用`foreman-installer`安装器把ansible需要的插件一起安装上
 
 ```bash
-# foreman-installer --enable-foreman-plugin-ansible --enable-foreman-proxy-plugin-ansible
+# foreman-installer --scenario katello \
+--enable-foreman-plugin-ansible \
+--enable-foreman-proxy-plugin-ansible
 ```
 
 ### Ansible callback

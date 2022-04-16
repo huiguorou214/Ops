@@ -66,7 +66,11 @@ localhost     ansible_connection=local
 
 
 
+
+
+
+
 ## References
 
-
+- [Working with dynamic inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_dynamic_inventory.html#working-with-dynamic-inventory)
 

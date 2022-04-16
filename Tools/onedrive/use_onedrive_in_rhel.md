@@ -37,5 +37,29 @@ create-time: 2022-02-02
 | ----------------------- | ------ |
 | OS_Version              | RHEL7  |
 | onedrive_client_version | 2.4.14 |
-|                         |        |
+
+
+
+## 部署
+
+安装基础环境包
+
+```
+sudo yum groupinstall 'Development Tools'
+sudo yum install libcurl-devel
+sudo yum install sqlite-devel
+curl -fsS https://dlang.org/install.sh | bash -s dmd
+```
+
+需要通知功能还要再额外安装：
+
+```
+sudo yum install libnotify-devel
+```
+
+
+
+
+
+
 
